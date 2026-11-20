@@ -1,0 +1,10 @@
+'use client'
+import {useState,type ReactNode} from 'react'
+import {CalendarDays,Store,Tags,Layers3,SlidersHorizontal} from 'lucide-react'
+import {useWorkspace} from './workspace'
+import {useDemo} from './demo-provider'
+import {categories,defaultScope,dateLabel,type Scope} from '@/lib/demo-data'
+import {Selector} from './foundation'
+export function useScope(){const {store}=useWorkspace(),{data}=useDemo();const [f,set]=useState(defaultScope);const inherited=data.stores.find(x=>x.name===store)?.id||'';const scope={...f,store:f.store==='all'?'':f.store||inherited};return {scope,set}}
+export function ScopeBar({scope,set,extended=true}:{scope:Scope;set:React.Dispatch<React.SetStateAction<Scope>>;extended?:boolean}){const {data}=useDemo();const {store,brand,category,days}=scope;return <div className="scopebar"><SlidersHorizontal size={16}/><Selector label="Date range" icon={CalendarDays} value={`Last ${days} days`} options={[7,30,90].map(n=>`Last ${n} days`)} onChange={v=>set(f=>({...f,days:Number(v.split(' ')[1])}))}/><Selector label="Filter by store" icon={Store} value={data.stores.find(x=>x.id===store)?.name||'All stores'} options={['All stores',...data.stores.map(x=>x.name)]} onChange={v=>set(f=>({...f,store:data.stores.find(x=>x.name===v)?.id||'all'}))}/>{extended&&<><Selector label="Brand" icon={Tags} value={data.brands.find(x=>x.id===brand)?.name||'All brands'} options={['All brands',...data.brands.map(x=>x.name)]} onChange={v=>set(f=>({...f,brand:data.brands.find(x=>x.name===v)?.id||''}))}/><Selector label="Product category" icon={Layers3} value={category||'All categories'} options={['All categories',...categories]} onChange={v=>set(f=>({...f,category:categories.includes(v)?v:''}))}/></>}<small>{dateLabel(days-1)} – {dateLabel(0)} 2026</small></div>}
+export function Panel({title,meta,action,children}:{title:string;meta?:string;action?:ReactNode;children:ReactNode}){return <section className="report-panel"><header><div><h2>{title}</h2>{meta&&<p>{meta}</p>}</div>{action}</header>{children}</section>}

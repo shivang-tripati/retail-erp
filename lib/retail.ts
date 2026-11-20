@@ -1,0 +1,16 @@
+import { ShoppingCart, Users, Package, Layers3, Warehouse, Wallet, Truck, Headset, ChartNoAxesColumnIncreasing, Settings2, type LucideIcon } from 'lucide-react'
+export type Module = {name:string; icon:LucideIcon; color:string; description:string; pages:string[]; type:string}
+export const modules:Module[] = [
+{name:'Sales',icon:ShoppingCart,color:'blue',description:'Billing, transactions and sales history.',pages:['POS & Billing','Sales History'],type:'Operations'},
+{name:'Customers',icon:Users,color:'violet',description:'Customer profiles, footfall and enquiries.',pages:['Customer Directory','Footfall','Enquiries'],type:'Operations'},
+{name:'Products',icon:Package,color:'teal',description:'Product catalogue and serial tracking.',pages:['Product Catalogue','Serial Registry'],type:'Operations'},
+{name:'Inventory',icon:Layers3,color:'amber',description:'Stock levels, movements and transfers.',pages:['Stock Overview','Stock Ledger','Stock Adjustments','Transfers','Inventory Aging','Product Outstanding'],type:'Operations'},
+{name:'Warehouse',icon:Warehouse,color:'indigo',description:'Goods receiving and warehouse operations.',pages:['GRN','Serial Scanning','Warehouse Operations','Buyback & Scrap'],type:'Operations'},
+{name:'Finance',icon:Wallet,color:'green',description:'Receivables, collections and recovery.',pages:['Receivables','Collections','Due Recovery','Invoice Monitoring'],type:'Management'},
+{name:'Fulfilment',icon:Truck,color:'teal',description:'Dispatch planning and delivery tracking.',pages:['Dispatch','Delivery Tracking'],type:'Operations'},
+{name:'After-sales',icon:Headset,color:'violet',description:'Installation, warranty and service support.',pages:['Installation','Warranty','Service Desk'],type:'Operations'},
+{name:'Analytics',icon:ChartNoAxesColumnIncreasing,color:'blue',description:'Business reports and executive insights.',pages:['Executive Dashboard','Store Performance','Alerts & Notifications','Executive KPIs','Reports'],type:'Management'},
+{name:'Administration',icon:Settings2,color:'indigo',description:'People, stores and workspace settings.',pages:['Users & Roles','Stores','Brands','Settings'],type:'Management'}]
+export const stores=['Connaught Place','Karol Bagh','Rohini','Dwarka','Lajpat Nagar','Noida','Ghaziabad','Faridabad','Gurgaon','Janakpuri'];export const roles=['Corporate Admin','Store Manager','Sales Executive','Warehouse Officer','Finance Executive','Service Coordinator'];
+export const slug=(s:string)=>s.toLowerCase().replace(/ & /g,'-').replace(/ /g,'-');export const url=(m:Module,p:string)=>`/${slug(m.name)}/${slug(p)}`;
+export const routes=modules.flatMap(m=>m.pages.map(p=>({module:m,page:p,href:url(m,p)})));
