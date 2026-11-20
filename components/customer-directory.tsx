@@ -10,6 +10,7 @@ import CustomerProfile from './customer-profile'
 import {Button} from './ui/button'
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from './ui/dialog'
 import {dateInIndia,staticCustomerInvoices,type Customer} from '@/lib/phase3-data'
+import {customerOutstanding} from '@/lib/finance'
 import {money} from '@/lib/demo-data'
 import type {ReactNode} from 'react'
 
@@ -24,12 +25,12 @@ export default function CustomerDirectory(){
     const legacy=staticCustomerInvoices(customer.id),sales=data.sales.filter(sale=>sale.customerId===customer.id&&sale.status==='Completed')
     const purchases=legacy.length+sales.length
     const amount=legacy.reduce((sum,row)=>sum+row.net,0)+sales.reduce((sum,sale)=>sum+sale.totalPaise/100,0)
-    const due=legacy.reduce((sum,row)=>sum+Math.max(0,row.net-row.paid),0)+sales.reduce((sum,sale)=>sum+sale.balancePaise/100,0)
+    const due=legacy.reduce((sum,row)=>sum+Math.max(0,row.net-row.paid),0)+customerOutstanding(customer.id,data)/100
     const lastSale=sales.reduce((last,sale)=>!last||sale.date>last? sale.date:last,'')
     const lastLegacy=legacy.length?Math.min(...legacy.map(row=>row.age)):null
     const lastDate=lastSale&&lastLegacy!==null?new Date(Math.max(new Date(lastSale).getTime(),Date.UTC(2026,10,20-lastLegacy))).toISOString():lastSale|| (lastLegacy===null?'':new Date(Date.UTC(2026,10,20-lastLegacy)).toISOString())
     return {customer,purchases,amount,due,lastDate}
-  }),[data.customers,data.sales])
+  }),[data.customers,data.sales,data])
   const filtered=customerStats.filter(({customer})=>
     (!query||`${customer.id} ${customer.name} ${customer.mobile}`.toLowerCase().includes(query.trim().toLowerCase()))&&
     (city==='All cities'||customer.city===city)&&(status==='All statuses'||customer.status===status))

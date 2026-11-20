@@ -17,6 +17,7 @@ import PaymentCollection,{collectPaymentAmount} from './payment-collection'
 import InvoicePreview from './invoice-preview'
 import type {CartLine,SplitPayment} from './pos-types'
 import {calculateInvoice,currency,findStoreState,type Customer,type Payment,type Product,type Sale,type SaleLine} from '@/lib/phase3-data'
+import {invoicePayments as paymentsForInvoice} from '@/lib/finance'
 import type {InventoryMovement} from '@/lib/phase4-data'
 import type {Row} from '@/lib/demo-data'
 
@@ -58,7 +59,7 @@ export default function POSCheckout(){
   const currentSale=data.sales.find(sale=>sale.id===invoiceId)
   const invoiceCustomer=currentSale?data.customers.find(item=>item.id===currentSale.customerId):undefined
   const invoiceStore=currentSale?data.stores.find(item=>item.id===currentSale.storeId):undefined
-  const invoicePayments=currentSale?data.payments.filter(payment=>currentSale.paymentIds.includes(payment.id)):[]
+  const invoicePayments=currentSale?paymentsForInvoice(currentSale,data):[]
   const inventoryFor=(productId:string)=>stock[productId]||0
   function addProduct(product:Product){
     const available=inventoryFor(product.id),line=cart.find(item=>item.productId===product.id)
@@ -144,7 +145,8 @@ export default function POSCheckout(){
           ?split.map((item,index)=>({amountPaise:receivedInput![index],mode:item.mode,reference:item.reference.trim(),financier:item.mode==='Financing / EMI'?item.financier.trim():''}))
           :[{amountPaise:received,mode:paymentMode,reference:reference.trim(),financier:paymentMode==='Financing / EMI'?financier.trim():''}]
         const paymentIds=entries.map(()=>crypto.randomUUID())
-        const payments:Payment[]=entries.map((entry,index)=>({...entry,id:paymentIds[index],invoiceId:invoiceNumber,customerId:customer.id,date:now}))
+        const payments:Payment[]=entries.map((entry,index)=>({...entry,id:paymentIds[index],invoiceId:invoiceNumber,customerId:customer.id,date:now,storeId,collectedBy:'Aarav Sharma'}))
+        const allocations=payments.map(payment=>({id:`ALLOC-${payment.id}`,paymentId:payment.id,invoiceId:invoiceNumber,amountPaise:payment.amountPaise,createdAt:now,createdBy:'Aarav Sharma'}))
         const amountDue=Math.max(0,totals.totalPaise-received)
         const sale:Sale={
           id:invoiceId,invoiceNumber,date:now,storeId,customerId:customer.id,customerName:customer.name,
@@ -167,13 +169,18 @@ export default function POSCheckout(){
         const newDeliveries=invoiceLines.map(line=>({id:`DEL-${invoiceNumber}-${line.productId}`,saleId:invoiceId,customerId:customer.id,storeId,products:line.name,status:'Ready for collection',scheduledDate:now.slice(0,10)}))
         const newInstallations=invoiceLines.filter(line=>line.category==='Home appliances'||line.category==='TV & audio').map(line=>({id:`INS-${invoiceNumber}-${line.productId}`,saleId:invoiceId,customerId:customer.id,product:line.name,scheduledDate:'Not scheduled',status:'Not scheduled'}))
         const audit={id:crypto.randomUUID(),date:now,action:'Sale completed',actor:'Aarav Sharma',reference:invoiceNumber,detail:`${customer.name} · ${chosenStore.name} · ${currency(totals.totalPaise)}`}
+        const financialAudit=payments.flatMap(payment=>[
+          {id:crypto.randomUUID(),reference:payment.reference||payment.id,activity:'Payment recorded' as const,date:now,actor:'Aarav Sharma',reason:`POS collection · ${payment.mode}`,customerId:customer.id,invoiceId:invoiceNumber},
+          {id:crypto.randomUUID(),reference:payment.reference||payment.id,activity:'Payment allocated' as const,date:now,actor:'Aarav Sharma',reason:`Allocated to invoice ${invoiceNumber}`,customerId:customer.id,invoiceId:invoiceNumber}
+        ])
         const movements:InventoryMovement[]=cart.flatMap(line=>{
           const product=products.find(item=>item.id===line.productId)!
           const serials=product.serialRequired?line.serials:['']
           return serials.map(serial=>({id:crypto.randomUUID(),reference:invoiceNumber,productId:product.id,sku:product.sku,serial,fromLocation:storeId,toLocation:'',quantity:product.serialRequired?1:line.quantity,type:'Sale',date:now,actor:`Aarav Sharma · ${role}`,reason:`POS invoice ${invoiceNumber}`}))
         })
         return {...current,
-          sales:[...current.sales,sale],payments:[...current.payments,...payments],
+          sales:[...current.sales,sale],payments:[...current.payments,...payments],paymentAllocations:[...current.paymentAllocations,...allocations],
+          financialAudit:[...current.financialAudit,...financialAudit],
           inventory:[...current.inventory].map(row=>stockByKey.get(`${row.storeId}:${row.productId}`)||row),
           serials:current.serials.map(serial=>soldSerials.has(serial.serial)?{...serial,status:'Sold',invoiceId:invoiceNumber}:serial),
           deliveries:[...current.deliveries,...newDeliveries],installations:[...current.installations,...newInstallations],

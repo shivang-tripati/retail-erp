@@ -6,7 +6,7 @@ export const modules:Module[] = [
 {name:'Products',icon:Package,color:'teal',description:'Product catalogue and serial tracking.',pages:['Product Catalogue','Serial Registry'],type:'Operations'},
 {name:'Inventory',icon:Layers3,color:'amber',description:'Stock levels, movements and transfers.',pages:['Stock Overview','Stock Ledger','Stock Adjustments','Transfers','Inventory Aging','Product Outstanding'],type:'Operations'},
 {name:'Warehouse',icon:Warehouse,color:'indigo',description:'Goods receiving and warehouse operations.',pages:['GRN','Serial Scanning','Warehouse Operations','Buyback & Scrap'],type:'Operations'},
-{name:'Finance',icon:Wallet,color:'green',description:'Receivables, collections and recovery.',pages:['Receivables','Collections','Due Recovery','Invoice Monitoring'],type:'Management'},
+{name:'Finance',icon:Wallet,color:'green',description:'Finance overview, collections, receivables and recovery.',pages:['Finance Dashboard','Payment Analysis','Receivables','Invoice Receivables','Receivables Aging','Collections','Payment Allocation','Due Recovery','Recovery Performance','Invoice Monitoring','Payment Reconciliation','Financial Audit History'],type:'Management'},
 {name:'Fulfilment',icon:Truck,color:'teal',description:'Dispatch planning and delivery tracking.',pages:['Dispatch','Delivery Tracking'],type:'Operations'},
 {name:'After-sales',icon:Headset,color:'violet',description:'Installation, warranty and service support.',pages:['Installation','Warranty','Service Desk'],type:'Operations'},
 {name:'Analytics',icon:ChartNoAxesColumnIncreasing,color:'blue',description:'Business reports and executive insights.',pages:['Executive Dashboard','Store Performance','Alerts & Notifications','Executive KPIs','Reports'],type:'Management'},

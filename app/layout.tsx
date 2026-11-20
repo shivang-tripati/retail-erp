@@ -5,6 +5,7 @@ import './workspace.css'
 import './phase2.css'
 import './phase3.css'
 import './phase4.css'
+import './phase5.css'
 import {DemoProvider} from '@/components/demo-provider'
 import Workspace from '@/components/workspace'
 export const metadata:Metadata={title:'RetailOS | Sharma Electronics',description:'Explore the Sharma Electronics multi-store retail workspace. Interactive demonstration with fictional data.'}

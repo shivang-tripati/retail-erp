@@ -8,6 +8,7 @@ import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogTitle} from '.
 import {useDemo} from '../demo-provider'
 import {useWorkspace} from '../workspace'
 import {currency} from '@/lib/phase3-data'
+import {invoiceFinance} from '@/lib/finance'
 import {type InventoryMovement,type MovementType,warehouseLocationId,warehouseLocationName} from '@/lib/phase4-data'
 import {Field,locationName,parsePaise,SelectField} from './shared'
 
@@ -340,7 +341,7 @@ export function ProductOutstanding(){
   const rows=data.sales.filter(sale=>sale.status==='Completed').flatMap(sale=>{
     const lines=sale.lines.filter(line=>store==='All locations'||sale.storeId===store)
     const weights=sale.lines.map(line=>line.taxablePaise+line.taxPaise)
-    const paid=data.payments.filter(payment=>sale.paymentIds.includes(payment.id)).reduce((sum,payment)=>sum+payment.amountPaise,0)
+    const paid=invoiceFinance(sale,data).paidPaise
     return lines.map(line=>{
       const index=sale.lines.indexOf(line)
       const invoiceValue=allocate(sale.totalPaise,weights,index),collected=allocate(paid,weights,index)

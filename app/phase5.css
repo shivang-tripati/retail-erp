@@ -1,0 +1,58 @@
+.finance-page>.pagehead{margin-bottom:14px}
+.crm-toolbar.finance-toolbar{grid-template-columns:repeat(auto-fit,minmax(175px,1fr));margin:12px 0 16px}
+.finance-metrics article small{color:#718096;font-size:10px;line-height:1.45}
+.finance-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.finance-chart{height:250px;width:100%;margin-top:8px}
+.finance-chart-short{height:205px}
+.finance-bars{display:grid;gap:14px;padding:8px 3px}
+.finance-bar-row{display:grid;gap:7px;min-width:0}
+.finance-bar-row>div{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#40546c;font-size:11px}
+.finance-bar-row strong{color:#183e63;font-size:11px;font-variant-numeric:tabular-nums}
+.finance-bar-row progress{display:block;width:100%;height:7px;overflow:hidden;border:0;border-radius:20px;background:#edf1f6}
+.finance-bar-row progress::-webkit-progress-bar{border-radius:20px;background:#edf1f6}
+.finance-bar-row progress::-webkit-progress-value{border-radius:20px;background:#3976b5}
+.finance-bar-row progress::-moz-progress-bar{border-radius:20px;background:#3976b5}
+.finance-explainer{display:grid;gap:11px}
+.finance-explainer p{display:flex;align-items:flex-start;gap:9px;margin:0;color:#52657b;font-size:11px;line-height:1.55}
+.finance-explainer svg{flex:none;color:#3976b5;margin-top:1px}
+.finance-aging-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:10px 0 14px}
+.finance-aging-strip article{display:grid;gap:6px;min-width:0;padding:12px;border:1px solid #dfe6ee;border-top:3px solid #4779a8;border-radius:6px;background:#fff}
+.finance-aging-strip article:nth-child(2){border-top-color:#6388a8}
+.finance-aging-strip article:nth-child(3){border-top-color:#a47b3d}
+.finance-aging-strip article:nth-child(4){border-top-color:#bc6c43}
+.finance-aging-strip article:nth-child(5){border-top-color:#aa4645}
+.finance-aging-strip span,.finance-aging-strip small{color:#617085;font-size:10px;line-height:1.4}
+.finance-aging-strip strong{color:#193e62;font-size:17px;font-variant-numeric:tabular-nums}
+.finance-prototype-note{margin:10px 0;padding:10px 12px;border-left:3px solid #ad7a2c;border-radius:4px;background:#fff8e9;color:#654d28;font-size:11px;line-height:1.55}
+.finance-action-group{display:flex;gap:5px}
+.finance-action-group [data-slot=button]{height:29px;padding:0 8px;font-size:10px}
+.finance-two-column{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.3fr);gap:12px;align-items:start}
+.finance-entry-dialog{max-height:92dvh;overflow-y:auto}
+.finance-allocation-list{display:grid;gap:7px;padding:12px;border:1px solid #dce4ed;border-radius:7px;background:#f8fafc}
+.finance-allocation-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:3px}
+.finance-allocation-heading h3{margin:0;color:#213e5c;font-size:13px;font-weight:650}
+.finance-allocation-heading p{margin:4px 0 0;color:#687b90;font-size:10px}
+.finance-allocation-heading>b{color:#1b4e79;font-size:11px;white-space:nowrap}
+.finance-allocation-line{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,150px);align-items:center;gap:12px;padding:8px 0;border-top:1px solid #e4e9ef}
+.finance-allocation-line>span{display:grid;gap:3px;min-width:0}
+.finance-allocation-line b{color:#244361;font-size:11px}
+.finance-allocation-line small{color:#6a7c90;font-size:10px}
+.finance-allocation-line input{width:100%;min-height:33px;border:1px solid #d6dee7;border-radius:5px;padding:6px 8px;font-size:12px}
+.finance-recovery-drawer{display:grid;gap:12px;max-height:calc(100dvh - 105px);overflow-y:auto;padding-right:8px}
+.finance-recovery-drawer h3{margin:6px 0 0;color:#233f5c;font-size:13px}
+.finance-page .reportgrid{margin-top:12px}
+.finance-page .report-panel{min-width:0}
+.finance-page .crm-pagination{flex-wrap:wrap}
+@media(max-width:1050px){
+  .finance-aging-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .finance-two-column{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .finance-chart-grid{grid-template-columns:minmax(0,1fr)}
+  .finance-aging-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  .finance-aging-strip{grid-template-columns:minmax(0,1fr)}
+  .finance-allocation-heading{display:grid}
+  .finance-allocation-line{grid-template-columns:minmax(0,1fr) minmax(90px,120px);gap:8px}
+}

@@ -1,5 +1,5 @@
 import {initialBrands, type Row} from './demo-data'
-import {initialInventory, initialProducts, initialSerials, type Product} from './phase3-data'
+import {initialInventory, initialProducts, initialSales, initialSerials, type Product} from './phase3-data'
 import {initialStores} from './demo-data'
 
 export const warehouseLocationId = 'W0'
@@ -116,7 +116,7 @@ export const initialGRNs: GRN[] = initialStores.map((store, index) => ({
   notes: 'Seeded sample stock. Receipt dates are illustrative.'
 }))
 
-export const initialMovements: InventoryMovement[] = initialInventory
+const openingMovements: InventoryMovement[] = initialInventory
   .filter(row => row.storeId !== warehouseLocationId && row.quantity > 0)
   .flatMap(row => {
     const product = initialProducts.find(item => item.id === row.productId)!
@@ -151,6 +151,18 @@ export const initialMovements: InventoryMovement[] = initialInventory
       reason:'Seeded sample opening stock; age is illustrative.'
     }]
   })
+
+const openingSaleMovements: InventoryMovement[] = initialSales.flatMap(sale => sale.lines.flatMap(line => {
+  const sold:InventoryMovement={id:`MOVE-${sale.invoiceNumber}-${line.productId}`,reference:sale.invoiceNumber,
+    productId:line.productId,sku:line.sku,serial:'',fromLocation:sale.storeId,toLocation:'',quantity:line.quantity,
+    type:'Sale',date:sale.date,actor:sale.salesperson,reason:`Seeded demo invoice ${sale.invoiceNumber}`}
+  return sale.status==='Reversed'
+    ?[sold,{...sold,id:`MOVE-REV-${sale.invoiceNumber}-${line.productId}`,fromLocation:'',toLocation:sale.storeId,
+      type:'Sale Reversal',date:sale.reversedAt,reason:sale.reversalReason}]
+    :[sold]
+}))
+
+export const initialMovements: InventoryMovement[] = [...openingMovements,...openingSaleMovements]
 
 export const initialPhase4State = {
   movements: initialMovements,

@@ -5,6 +5,7 @@ import {useDemo} from './demo-provider'
 import {DataTable,EmptyState} from './foundation'
 import {dateLabel,money} from '@/lib/demo-data'
 import {currency,dateInIndia,staticCustomerInvoices} from '@/lib/phase3-data'
+import {allocationsForPayment,customerOutstanding,invoiceFinance,paymentStatus} from '@/lib/finance'
 import type {Customer} from '@/lib/phase3-data'
 
 const tabs=['Overview','Purchase history','Payments','Deliveries','Installations','Warranty & service']
@@ -15,15 +16,19 @@ export default function CustomerProfile({customer}:{customer:Customer}){
   const activeSales=sales.filter(s=>s.status==='Completed')
   const totalPurchases=old.length+activeSales.length
   const totalValue=old.reduce((sum,row)=>sum+row.net,0)+activeSales.reduce((sum,sale)=>sum+sale.totalPaise/100,0)
-  const due=old.reduce((sum,row)=>sum+row.net-row.paid,0)+activeSales.reduce((sum,sale)=>sum+sale.balancePaise/100,0)
+  const due=old.reduce((sum,row)=>sum+row.net-row.paid,0)+customerOutstanding(customer.id,data)/100
   const storeName=(id:string)=>data.stores.find(store=>store.id===id)?.name||id
   const history=[
     ...old.map(row=>[row.id,`${dateLabel(row.age)} 2026`,storeName(row.store),data.brands.find(brand=>brand.id===row.brand)?.name||row.category,money(row.net),row.paid>=row.net?'Paid':row.paid?'Partially paid':'Unpaid']),
-    ...sales.map(sale=>[sale.invoiceNumber,dateInIndia(sale.date),storeName(sale.storeId),sale.lines.map(line=>line.name).join(', '),currency(sale.totalPaise),sale.status==='Reversed'?'Reversed':sale.paymentStatus])
+    ...sales.map(sale=>{const financial=invoiceFinance(sale,data);return [sale.invoiceNumber,dateInIndia(sale.date),storeName(sale.storeId),sale.lines.map(line=>line.name).join(', '),currency(sale.totalPaise),financial.status]})
   ]
   const payments=[
     ...old.filter(row=>row.paid>0).map(row=>[`${dateLabel(row.age)} 2026`,money(row.paid),row.payment,`DEMO-${row.id}`,row.id,'Recorded']),
-    ...data.payments.filter(payment=>payment.customerId===customer.id).map(payment=>[dateInIndia(payment.date),currency(payment.amountPaise),payment.mode,payment.reference,payment.invoiceId,data.sales.find(sale=>sale.invoiceNumber===payment.invoiceId)?.status==='Reversed'?'Reversed':'Recorded'])
+    ...data.payments.filter(payment=>payment.customerId===customer.id).map(payment=>{
+      const allocations=allocationsForPayment(payment,data)
+      const related=allocations.map(item=>item.invoiceId).join(', ')||'Unallocated advance'
+      return [dateInIndia(payment.date),currency(payment.amountPaise),payment.mode,payment.reference||payment.id,related,paymentStatus(payment,data)]
+    })
   ]
   const deliveries=[
     ...old.filter(row=>row.delivery).map(row=>[row.id,data.stores.find(store=>store.id===row.store)?.name||row.store,row.category,row.delivery,`${dateLabel(row.age)} 2026`]),

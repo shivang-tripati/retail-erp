@@ -2,7 +2,39 @@
 import {PageHeader,DataTable} from './foundation'
 import {ScopeBar,useScope,Panel} from './analytics-controls'
 import {SalesTrend} from './sales-trend'
-import {ledger,summary,money,pct,change} from '@/lib/demo-data'
-import {toAnalyticsInvoice} from '@/lib/phase3-data'
+import {money,pct} from '@/lib/demo-data'
+import {financeAnalytics,financeChange} from '@/lib/finance-analytics'
 import {useDemo} from './demo-provider'
-export default function Kpis(){const {scope,set}=useScope(),{data}=useDemo(),d=scope.days,additional=data.sales.filter(x=>x.status==='Completed').map(toAnalyticsInvoice),rows=ledger(scope,0,additional),prior=ledger(scope,d,additional),s=summary(rows,scope),p=summary(prior,scope,d),pp=summary(ledger(scope,d*2,additional),scope,d*2);const growth=change(s.net,p.net),old=change(p.net,pp.net);const items=[['Gross sales','gross',money,'Before invoice discounts'],['Net sales','net',money,'After invoice discounts'],['Invoice count','count',String,'Invoices issued'],['Average bill value','avg',money,'Net sales ÷ invoices'],['Collection efficiency','eff',pct,'Collections ÷ net sales'],['Outstanding receivables','out',money,'Net sales less collections'],['Inventory turnover','turn',(n:number)=>n.toFixed(2)+'×','Cost of sales ÷ average inventory'],['Delivery completion','delivery',pct,'Completed deliveries ÷ invoices'],['Installation completion','install',pct,'Completed ÷ required installations']] as const;return <div className="phase"><PageHeader eyebrow="Analytics / Measurement" title="KPI details" description="Illustrative calculations from fictional invoices and inventory snapshots. Not accounting or operational figures."/><ScopeBar scope={scope} set={set}/><SalesTrend current={rows} previous={prior} days={d}/><Panel title="Performance measures" meta={`Current ${d} days compared with the previous ${d} days. A dash means no baseline.`}><DataTable columns={['Measure','Current period','Previous period','Change','Calculation']} rows={[[ 'Sales growth',growth===null?'—':pct(growth),old===null?'—':pct(old),growth!==null&&old!==null?(growth-old).toFixed(1)+' pp':'—','Net sales change from preceding period'],...items.map(([label,k,fmt,why])=>{const delta=change(s[k],p[k]);return [label,fmt(s[k]),fmt(p[k]),delta===null?'—':(delta>0?'+':'')+pct(delta),why]})]}/></Panel></div>}
+
+export default function Kpis(){
+  const {scope,set}=useScope(),{data}=useDemo(),days=scope.days
+  const current=financeAnalytics(scope,0,data),previous=financeAnalytics(scope,days,data),older=financeAnalytics(scope,days*2,data)
+  const s=current.stats,p=previous.stats,pp=older.stats
+  const growth=financeChange(s.net,p.net),previousGrowth=financeChange(p.net,pp.net)
+  const items=[
+    ['Gross sales','gross',money,'Before invoice discounts'],
+    ['Net sales','net',money,'After invoice discounts'],
+    ['Invoice count','count',(value:number)=>value.toLocaleString('en-IN'),'Active invoices in the period'],
+    ['Average bill value','avg',money,'Net sales ÷ invoices'],
+    ['Collection efficiency','eff',pct,'Recorded collections ÷ net sales'],
+    ['Outstanding receivables','out',money,'Open active invoice balances'],
+    ['Inventory turnover','turn',(value:number)=>value.toFixed(2)+'×','Cost of sales ÷ average inventory'],
+    ['Delivery completion','delivery',pct,'Completed deliveries ÷ invoices'],
+    ['Installation completion','install',pct,'Completed ÷ required installations']
+  ] as const
+  return <div className="phase">
+    <PageHeader eyebrow="Analytics / Measurement" title="KPI details" description="Illustrative calculations from fictional invoice, payment and inventory records. These are not accounting or operational figures."/>
+    <ScopeBar scope={scope} set={set}/>
+    <SalesTrend current={current.rows} previous={previous.rows} days={days}/>
+    <Panel title="Performance measures" meta={`Current ${days} days compared with the previous ${days} days. Payment collections follow recorded payment dates; balances follow invoice allocations.`}>
+      <DataTable columns={['Measure','Current period','Previous period','Change','Calculation']} rows={[
+        ['Sales growth',growth===null?'—':pct(growth),previousGrowth===null?'—':pct(previousGrowth),growth!==null&&previousGrowth!==null?`${(growth-previousGrowth).toFixed(1)} pp`:'—','Net sales change from preceding period'],
+        ...items.map(([label,key,format,description])=>{
+          const change=financeChange(s[key],p[key])
+          return [label,format(s[key]),format(p[key]),change===null?'—':`${change>0?'+':''}${pct(change)}`,description]
+        })
+      ]}/>
+      <p className="crm-note">Invoiced sales, collected payments and outstanding receivables are separate values. Payment allocations use integer paise. Due dates and aging are simulated from the invoice date; tax and operational ratios require professional validation before production use.</p>
+    </Panel>
+  </div>
+}

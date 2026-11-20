@@ -1,4 +1,5 @@
 import {categories, endDay, invoices, initialBrands, type Row} from './demo-data'
+import type {FinancialAuditEntry, PaymentAllocation, PaymentReconciliation, PaymentReversal, RecoveryActivity, RecoveryCase} from './finance-types'
 
 export type Customer = {
   id: string
@@ -40,7 +41,7 @@ export type SerialRecord = {
 export type WalkIn = {id: string; name: string; mobile: string; storeId: string; visitedAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; customerId?: string}
 export type Enquiry = {id: string; customerName: string; mobile: string; storeId: string; createdAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; walkInId?: string}
 export type SaleLine = {productId: string; name: string; brandId: string; sku: string; model: string; category: string; quantity: number; unitPricePaise: number; itemDiscountPct: number; itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; gstRate: number; taxPaise: number; serials: string[]}
-export type Payment = {id: string; invoiceId: string; customerId: string; date: string; amountPaise: number; mode: string; reference: string; financier: string}
+export type Payment = {id: string; invoiceId: string; customerId: string; date: string; amountPaise: number; mode: string; reference: string; financier: string; storeId?: string; collectedBy?: string; notes?: string}
 export type Sale = {
   id: string; invoiceNumber: string; date: string; storeId: string; customerId: string; customerName: string
   salesperson: string; payment: string; lines: SaleLine[]; grossPaise: number; itemDiscountPaise: number; cartDiscountPaise: number
@@ -61,6 +62,12 @@ export type Phase3State = {
   enquiries: Enquiry[]
   sales: Sale[]
   payments: Payment[]
+  paymentAllocations: PaymentAllocation[]
+  paymentReversals: PaymentReversal[]
+  paymentReconciliations: PaymentReconciliation[]
+  recoveryCases: RecoveryCase[]
+  recoveryActivities: RecoveryActivity[]
+  financialAudit: FinancialAuditEntry[]
   deliveries: Delivery[]
   installations: Installation[]
   audit: AuditEntry[]
@@ -177,15 +184,100 @@ export const initialEnquiries: Enquiry[] = Array.from({length: 18}, (_, i) => ({
   notes: ''
 }))
 
+const seedSalesPlan: Array<{
+  invoiceNumber: string; date: string; storeId: string; customerId: string; productId: string
+  status?: Sale['status']; reversalReason?: string
+  payments: Array<{amountPaise: number; mode: string; reference: string; date: string; financier?: string}>
+}> = [
+  {invoiceNumber:'INV-DEMO-2401',date:'2026-11-17T10:20:00.000Z',storeId:'S0',customerId:'CUS-0001',productId:'PR-010',payments:[
+    {amountPaise:1000000,mode:'UPI',reference:'UPI-DEMO-2401-A',date:'2026-11-17T10:24:00.000Z'},
+    {amountPaise:500000,mode:'Cash',reference:'CASH-DEMO-2401-B',date:'2026-11-18T08:30:00.000Z'}
+  ]},
+  {invoiceNumber:'INV-DEMO-2402',date:'2026-09-10T09:15:00.000Z',storeId:'S1',customerId:'CUS-0002',productId:'PR-013',payments:[]},
+  {invoiceNumber:'INV-DEMO-2403',date:'2026-10-11T11:05:00.000Z',storeId:'S2',customerId:'CUS-0003',productId:'PR-025',payments:[
+    {amountPaise:500000,mode:'UPI',reference:'UPI-DEMO-2403-A',date:'2026-10-12T08:00:00.000Z'}
+  ]},
+  {invoiceNumber:'INV-DEMO-2404',date:'2026-11-19T13:40:00.000Z',storeId:'S0',customerId:'CUS-0004',productId:'PR-005',payments:[
+    {amountPaise:12979900,mode:'Debit/Credit Card',reference:'CARD-DEMO-2404-A',date:'2026-11-19T13:44:00.000Z'}
+  ]},
+  {invoiceNumber:'INV-DEMO-2405',date:'2026-11-20T12:10:00.000Z',storeId:'S3',customerId:'CUS-0001',productId:'PR-015',payments:[
+    {amountPaise:1000000,mode:'Financing / EMI',reference:'EMI-DEMO-2405-A',date:'2026-11-20T12:20:00.000Z',financier:'Northstar Demo Finance'}
+  ]},
+  {invoiceNumber:'INV-DEMO-2406',date:'2026-08-20T10:10:00.000Z',storeId:'S1',customerId:'CUS-0005',productId:'PR-010',status:'Reversed',reversalReason:'Duplicate demonstration invoice',payments:[]},
+  {invoiceNumber:'INV-DEMO-2407',date:'2026-08-20T15:15:00.000Z',storeId:'S4',customerId:'CUS-0006',productId:'PR-013',payments:[
+    {amountPaise:800000,mode:'Bank Transfer',reference:'BANK-DEMO-2407-A',date:'2026-08-21T07:45:00.000Z'}
+  ]},
+  {invoiceNumber:'INV-DEMO-2408',date:'2026-07-10T09:00:00.000Z',storeId:'S5',customerId:'CUS-0007',productId:'PR-025',payments:[]}
+]
+
+export const initialSales: Sale[] = seedSalesPlan.map((plan,index) => {
+  const product=initialProducts.find(item=>item.id===plan.productId)!
+  const customer=initialCustomers.find(item=>item.id===plan.customerId)!
+  const calculation=calculateInvoice([{quantity:1,unitPricePaise:product.pricePaise,itemDiscountPct:0,gstRate:product.gstRate}],0,'',false)
+  const paymentIds=plan.payments.map((_,paymentIndex)=>`PAY-DEMO-${2401+index}-${paymentIndex+1}`)
+  const paidPaise=plan.status==='Reversed'?0:plan.payments.reduce((sum,payment)=>sum+payment.amountPaise,0)
+  const line=calculation.lines[0]
+  const reversed=plan.status==='Reversed'
+  return {
+    id:`sale-demo-${2401+index}`,invoiceNumber:plan.invoiceNumber,date:plan.date,storeId:plan.storeId,
+    customerId:customer.id,customerName:customer.name,salesperson:'Aarav Sharma',
+    payment:plan.payments.length>1?'Split payment':plan.payments[0]?.mode||'Unpaid',
+    lines:[{productId:product.id,name:product.name,brandId:product.brandId,sku:product.sku,model:product.model,category:product.category,
+      quantity:1,unitPricePaise:product.pricePaise,itemDiscountPct:0,itemDiscountPaise:line.itemDiscountPaise,
+      cartDiscountPaise:line.cartDiscountPaise,taxablePaise:line.taxablePaise,gstRate:product.gstRate,taxPaise:line.taxPaise,serials:[]}],
+    grossPaise:calculation.grossPaise,itemDiscountPaise:calculation.itemDiscountPaise,cartDiscountPaise:calculation.cartDiscountPaise,
+    taxablePaise:calculation.taxablePaise,cgstPaise:calculation.cgstPaise,sgstPaise:calculation.sgstPaise,igstPaise:calculation.igstPaise,
+    taxPaise:calculation.taxPaise,roundOffPaise:calculation.roundOffPaise,totalPaise:calculation.totalPaise,
+    paidPaise,balancePaise:reversed?0:calculation.totalPaise-paidPaise,
+    paymentStatus:paidPaise>=calculation.totalPaise?'Paid':paidPaise?'Partially paid':'Unpaid',
+    paymentIds,status:plan.status||'Completed',reversalReason:plan.reversalReason||'',
+    reversedAt:reversed?'2026-08-20T10:30:00.000Z':'',reversedBy:reversed?'Aarav Sharma':'',
+    createdAt:plan.date,createdBy:'Aarav Sharma · Finance Executive'
+  }
+})
+
+export const initialPayments: Payment[] = seedSalesPlan.flatMap((plan,index) => plan.payments.map((payment,paymentIndex) => ({
+  id:`PAY-DEMO-${2401+index}-${paymentIndex+1}`,invoiceId:plan.invoiceNumber,customerId:plan.customerId,
+  date:payment.date,amountPaise:payment.amountPaise,mode:payment.mode,reference:payment.reference,
+  financier:payment.financier||'',storeId:plan.storeId,collectedBy:'Aarav Sharma'
+})))
+export const initialPaymentAllocations: PaymentAllocation[] = initialPayments.map(payment => ({
+  id:`ALLOC-${payment.id}`,paymentId:payment.id,invoiceId:payment.invoiceId,amountPaise:payment.amountPaise,
+  createdAt:payment.date,createdBy:payment.collectedBy||'Aarav Sharma'
+}))
+export const initialFinancialAudit: FinancialAuditEntry[] = [
+  ...initialPayments.flatMap<FinancialAuditEntry>(payment => [
+    {id:`AUDIT-REC-${payment.id}`,reference:payment.reference,activity:'Payment recorded',date:payment.date,actor:payment.collectedBy||'Aarav Sharma',reason:'Seeded fictional demo collection',customerId:payment.customerId,invoiceId:payment.invoiceId},
+    {id:`AUDIT-ALLOC-${payment.id}`,reference:payment.reference,activity:'Payment allocated',date:payment.date,actor:payment.collectedBy||'Aarav Sharma',reason:'Allocated to the source invoice',customerId:payment.customerId,invoiceId:payment.invoiceId}
+  ]),
+  {id:'AUDIT-REV-INV-DEMO-2406',reference:'INV-DEMO-2406',activity:'Invoice reversed',date:'2026-08-20T10:30:00.000Z',actor:'Aarav Sharma',reason:'Duplicate demonstration invoice',customerId:'CUS-0005',invoiceId:'INV-DEMO-2406'}
+]
+export const initialRecoveryCases: RecoveryCase[] = [
+  {id:'REC-DEMO-2402',customerId:'CUS-0002',storeId:'S1',assignedExecutive:'Nisha Batra',status:'Contacted',lastContactAt:'2026-11-18T10:00:00.000Z',nextFollowUpAt:'2026-11-21T04:30:00.000Z',promisedPaymentAt:'',notes:'Customer requested a call after the weekend.',createdAt:'2026-10-15T10:00:00.000Z'},
+  {id:'REC-DEMO-2403',customerId:'CUS-0003',storeId:'S2',assignedExecutive:'Rohan Khanna',status:'Promised to Pay',lastContactAt:'2026-11-19T08:30:00.000Z',nextFollowUpAt:'2026-11-21T04:30:00.000Z',promisedPaymentAt:'2026-11-24T06:30:00.000Z',notes:'Customer confirmed an expected transfer.',createdAt:'2026-10-20T10:00:00.000Z'},
+  {id:'REC-DEMO-2407',customerId:'CUS-0006',storeId:'S4',assignedExecutive:'Nisha Batra',status:'Not Contacted',lastContactAt:'',nextFollowUpAt:'2026-11-20T04:30:00.000Z',promisedPaymentAt:'',notes:'',createdAt:'2026-08-25T10:00:00.000Z'},
+  {id:'REC-DEMO-2408',customerId:'CUS-0007',storeId:'S5',assignedExecutive:'Rohan Khanna',status:'Escalated',lastContactAt:'2026-11-14T09:00:00.000Z',nextFollowUpAt:'2026-11-21T04:30:00.000Z',promisedPaymentAt:'',notes:'Older balance referred for manager review.',createdAt:'2026-08-15T10:00:00.000Z'}
+]
+
 export const initialPhase3State: Phase3State = {
   customers: initialCustomers,
   products: initialProducts,
-  inventory: initialInventory,
+  inventory: initialInventory.map(stock => {
+    const sold=initialSales.filter(sale=>sale.status==='Completed'&&sale.storeId===stock.storeId)
+      .reduce((sum,sale)=>sum+sale.lines.filter(line=>line.productId===stock.productId).reduce((quantity,line)=>quantity+line.quantity,0),0)
+    return {...stock,quantity:stock.quantity-sold}
+  }),
   serials: initialSerials,
   walkIns: initialWalkIns,
   enquiries: initialEnquiries,
-  sales: [],
-  payments: [],
+  sales: initialSales,
+  payments: initialPayments,
+  paymentAllocations: initialPaymentAllocations,
+  paymentReversals: [],
+  paymentReconciliations: [],
+  recoveryCases: initialRecoveryCases,
+  recoveryActivities: [],
+  financialAudit: initialFinancialAudit,
   deliveries: [],
   installations: [],
   audit: []
