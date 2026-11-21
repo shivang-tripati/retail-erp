@@ -1,8 +1,8 @@
-# RetailOS Prototype Scope
+# RetailERP Prototype Scope
 
 ## Completed modules
 
-RetailOS covers nine primary business modules and 14 additional feature areas:
+RetailERP covers nine primary business modules and 14 additional feature areas:
 
 1. Demo Centre and guided presentation
 2. POS and sales history

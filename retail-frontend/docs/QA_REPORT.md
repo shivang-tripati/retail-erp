@@ -1,4 +1,4 @@
-# RetailOS Phase 10 QA Report
+# RetailERP Phase 10 QA Report
 
 ## Overall result
 
@@ -24,7 +24,7 @@
 ## Defects fixed
 
 - CSV export activation was changed to append and remove a hidden anchor and delay object URL cleanup.
-- Package metadata was changed from the scaffold name to `retailos-client-demo`.
+- Package metadata was changed from the scaffold name to `retailerp-client-demo`.
 - Demo and prototype scope documentation was added.
 
 ## Remaining limitations

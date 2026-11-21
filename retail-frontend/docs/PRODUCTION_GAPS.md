@@ -1,4 +1,4 @@
-# RetailOS Production Gap Assessment
+# RetailERP Production Gap Assessment
 
 The current implementation is a presentation-ready frontend prototype, not a production retail system.
 

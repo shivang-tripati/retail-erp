@@ -1,4 +1,4 @@
-# RetailOS Route Audit
+# RetailERP Route Audit
 
 Audited 72 registered and legacy routes by HTTP status on the local Next.js application.
 

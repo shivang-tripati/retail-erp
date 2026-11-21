@@ -1,6 +1,6 @@
-# RetailOS
+# RetailERP
 
-RetailOS is a frontend-only, fictional retail demonstration for Sharma Electronics. It connects POS, CRM, products, inventory, warehouse operations, finance, fulfilment, after-sales and executive analytics in one browser session.
+RetailERP is a frontend-only, fictional retail demonstration for Sharma Electronics. It connects POS, CRM, products, inventory, warehouse operations, finance, fulfilment, after-sales and executive analytics in one browser session.
 
 ## Technology
 
