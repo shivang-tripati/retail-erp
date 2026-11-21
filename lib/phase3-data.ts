@@ -1,5 +1,7 @@
 import {categories, endDay, invoices, initialBrands, type Row} from './demo-data'
 import type {FinancialAuditEntry, PaymentAllocation, PaymentReconciliation, PaymentReversal, RecoveryActivity, RecoveryCase} from './finance-types'
+import type {Delivery, DeliveryActivity, DeliveryException, DeliveryManifest, DeliveryProof, DeliveryTeam, DeliveryVehicle, FulfilmentMode} from './phase6-types'
+import type {Installation,InstallationActivity,ServiceActivity,ServiceTicket,Technician,WarrantyPlan,WarrantyRegistration} from './phase7-types'
 
 export type Customer = {
   id: string
@@ -40,7 +42,7 @@ export type SerialRecord = {
 }
 export type WalkIn = {id: string; name: string; mobile: string; storeId: string; visitedAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; customerId?: string}
 export type Enquiry = {id: string; customerName: string; mobile: string; storeId: string; createdAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; walkInId?: string}
-export type SaleLine = {productId: string; name: string; brandId: string; sku: string; model: string; category: string; quantity: number; unitPricePaise: number; itemDiscountPct: number; itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; gstRate: number; taxPaise: number; serials: string[]}
+export type SaleLine = {productId: string; name: string; brandId: string; sku: string; model: string; category: string; quantity: number; unitPricePaise: number; itemDiscountPct: number; itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; gstRate: number; taxPaise: number; serials: string[]; fulfilmentMode?:FulfilmentMode}
 export type Payment = {id: string; invoiceId: string; customerId: string; date: string; amountPaise: number; mode: string; reference: string; financier: string; storeId?: string; collectedBy?: string; notes?: string}
 export type Sale = {
   id: string; invoiceNumber: string; date: string; storeId: string; customerId: string; customerName: string
@@ -50,8 +52,6 @@ export type Sale = {
   paymentStatus: 'Paid' | 'Partially paid' | 'Unpaid'; paymentIds: string[]; status: 'Completed' | 'Reversed'
   reversalReason: string; reversedAt: string; reversedBy: string; createdAt: string; createdBy: string
 }
-export type Delivery = {id: string; saleId: string; customerId: string; storeId: string; products: string; status: string; scheduledDate: string}
-export type Installation = {id: string; saleId: string; customerId: string; product: string; scheduledDate: string; status: string}
 export type AuditEntry = {id: string; date: string; action: string; actor: string; reference: string; detail: string}
 export type Phase3State = {
   customers: Customer[]
@@ -69,7 +69,19 @@ export type Phase3State = {
   recoveryActivities: RecoveryActivity[]
   financialAudit: FinancialAuditEntry[]
   deliveries: Delivery[]
+  deliveryTeams: DeliveryTeam[]
+  deliveryVehicles: DeliveryVehicle[]
+  deliveryManifests: DeliveryManifest[]
+  deliveryActivities: DeliveryActivity[]
+  deliveryExceptions: DeliveryException[]
+  deliveryProofs: DeliveryProof[]
   installations: Installation[]
+  installationActivities: InstallationActivity[]
+  technicians: Technician[]
+  warrantyPlans: WarrantyPlan[]
+  warranties: WarrantyRegistration[]
+  serviceTickets: ServiceTicket[]
+  serviceActivities: ServiceActivity[]
   audit: AuditEntry[]
 }
 
@@ -279,7 +291,19 @@ export const initialPhase3State: Phase3State = {
   recoveryActivities: [],
   financialAudit: initialFinancialAudit,
   deliveries: [],
+  deliveryTeams: [],
+  deliveryVehicles: [],
+  deliveryManifests: [],
+  deliveryActivities: [],
+  deliveryExceptions: [],
+  deliveryProofs: [],
   installations: [],
+  installationActivities: [],
+  technicians: [],
+  warrantyPlans: [],
+  warranties: [],
+  serviceTickets: [],
+  serviceActivities: [],
   audit: []
 }
 

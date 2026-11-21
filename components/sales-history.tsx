@@ -64,6 +64,9 @@ export default function SalesHistory(){
       transact(current=>{
         const sale=current.sales.find(item=>item.id===target.id&&item.status==='Completed')
         if(!sale)throw new Error('This invoice is no longer available for reversal.')
+        if(current.deliveries.some(order=>order.saleId===sale.id&&(order.items.some(line=>line.dispatchedQuantity>0||line.deliveredQuantity>0)||
+          ['Dispatched','In Transit','Out for Delivery','Delivered'].includes(order.status))))
+          throw new Error('This sale has delivery activity. Complete an explicit delivery return workflow before reversing the invoice.')
         const returned=new Map<string,number>()
         for(const line of sale.lines){
           const inventory=current.inventory.find(item=>item.storeId===sale.storeId&&item.productId===line.productId)
@@ -78,12 +81,18 @@ export default function SalesHistory(){
           const serials=product?.serialRequired?line.serials:['']
           return serials.map(serial=>({id:crypto.randomUUID(),reference:sale.invoiceNumber,productId:line.productId,sku:line.sku,serial,fromLocation:'',toLocation:sale.storeId,quantity:product?.serialRequired?1:line.quantity,type:'Sale Reversal',date:now,actor:'Aarav Sharma',reason:clean}))
         })
+        const cancelled=current.deliveries.filter(item=>item.saleId===sale.id&&item.status!=='Cancelled')
+        const cancelledInstallations=current.installations.filter(item=>item.saleId===sale.id&&item.status!=='Cancelled')
         return {...current,
           sales:current.sales.map(item=>item.id===sale.id?paymentSnapshot({...item,status:'Reversed',reversalReason:clean,reversedAt:now,reversedBy:'Aarav Sharma'},current):item),
           inventory:current.inventory.map(item=>({...item,quantity:item.quantity+(item.storeId===sale.storeId?returned.get(item.productId)||0:0)})),
           serials:current.serials.map(item=>item.invoiceId===sale.invoiceNumber&&item.status==='Sold'?{...item,status:'Available',invoiceId:undefined}:item),
-          deliveries:current.deliveries.map(item=>item.saleId===sale.id?{...item,status:'Cancelled by invoice reversal'}:item),
-          installations:current.installations.map(item=>item.saleId===sale.id?{...item,status:'Cancelled by invoice reversal'}:item),
+          deliveries:current.deliveries.map(item=>item.saleId===sale.id?{...item,status:'Cancelled',updatedAt:now}:item),
+          deliveryActivities:[...current.deliveryActivities,...cancelled.map(item=>({id:crypto.randomUUID(),deliveryId:item.id,type:'Cancelled' as const,date:now,actor:'Aarav Sharma',status:'Cancelled' as const,notes:`Cancelled by invoice reversal: ${clean}`}))],
+          installations:current.installations.map(item=>item.saleId===sale.id?{...item,status:'Cancelled' as const,cancellationReason:`Invoice reversal: ${clean}`,updatedAt:now}:item),
+          installationActivities:[...current.installationActivities,...cancelledInstallations.map(item=>({
+            id:crypto.randomUUID(),installationId:item.id,action:'Cancelled' as const,date:now,actor:'Aarav Sharma',notes:`Cancelled by invoice reversal: ${clean}`
+          }))],
           audit:[...current.audit,{id:crypto.randomUUID(),date:now,action:'Sale reversed',actor:'Aarav Sharma',reference:sale.invoiceNumber,detail:clean}],
           financialAudit:[...current.financialAudit,{id:crypto.randomUUID(),reference:sale.invoiceNumber,activity:'Invoice reversed',date:now,actor:'Aarav Sharma',reason:clean,customerId:sale.customerId,invoiceId:sale.invoiceNumber}],
           movements:[...current.movements,...movements]

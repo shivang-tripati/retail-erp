@@ -1,0 +1,389 @@
+{
+  "projectType": "webapp",
+  "setup": [],
+  "assertions": [
+    {
+      "name": "tsc-no-emit",
+      "kind": "process",
+      "command": "pnpm",
+      "args": [
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "production-build",
+      "kind": "process",
+      "command": "pnpm",
+      "args": [
+        "build"
+      ],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "pnpm",
+      "args": [
+        "test"
+      ],
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "home-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "delivery-dashboard-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/fulfilment/delivery-dashboard",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "dispatch-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/fulfilment/dispatch",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "proof-of-delivery-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/fulfilment/proof-of-delivery",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "delivery-documents-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/fulfilment/delivery-documents",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "phase-five-finance-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/finance/finance-dashboard",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "after-sales-dashboard-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/after-sales-dashboard",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "installation-bookings-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/installation-bookings",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "warranty-registration-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/warranty-registration",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "service-tickets-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/service-tickets",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "installation-dashboard-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/installation-dashboard",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "installation-eligibility-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/installation-eligibility",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "technician-directory-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/technician-directory",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "installation-worklist-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/installation-worklist",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "warranty-dashboard-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/warranty-dashboard",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "warranty-plans-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/warranty-plans",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "warranty-directory-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/warranty-directory",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "warranty-certificates-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/warranty-certificates",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "service-dashboard-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/service-dashboard",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "service-escalations-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/service-escalations",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "after-sales-analytics-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/after-sales-analytics",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "legacy-installation-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/installation",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "legacy-warranty-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/warranty",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "legacy-service-desk-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": [
+        "dev"
+      ],
+      "url": "http://localhost:3000/after-sales/service-desk",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "sales-customer-analytics-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": ["dev"],
+      "url": "http://localhost:3000/analytics/sales-customer-analytics",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "inventory-warehouse-analytics-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": ["dev"],
+      "url": "http://localhost:3000/analytics/inventory-warehouse-analytics",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "finance-collections-analytics-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": ["dev"],
+      "url": "http://localhost:3000/analytics/finance-collections-analytics",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "fulfilment-after-sales-analytics-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": ["dev"],
+      "url": "http://localhost:3000/analytics/fulfilment-after-sales-analytics",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "unified-reports-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": ["dev"],
+      "url": "http://localhost:3000/analytics/reports",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    },
+    {
+      "name": "demo-centre-route-serves",
+      "kind": "http-probe",
+      "startCommand": "pnpm",
+      "startArgs": ["dev"],
+      "url": "http://localhost:3000/demo/demo-centre",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    }
+  ]
+}

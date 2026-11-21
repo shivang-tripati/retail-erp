@@ -7,10 +7,13 @@ import {dateLabel,money} from '@/lib/demo-data'
 import {currency,dateInIndia,staticCustomerInvoices} from '@/lib/phase3-data'
 import {allocationsForPayment,customerOutstanding,invoiceFinance,paymentStatus} from '@/lib/finance'
 import type {Customer} from '@/lib/phase3-data'
+import {Button} from './ui/button'
+import {ServiceTicketDialog} from './aftersales/service-ticket-dialog'
+import {LifecycleRail,PrototypeNote} from './aftersales/common'
 
-const tabs=['Overview','Purchase history','Payments','Deliveries','Installations','Warranty & service']
+const tabs=['Overview','Purchase history','Payments','Deliveries','Installations','After-sales']
 export default function CustomerProfile({customer}:{customer:Customer}){
-  const {data}=useDemo(),[tab,setTab]=useState(tabs[0])
+  const {data}=useDemo(),[tab,setTab]=useState(tabs[0]),[ticketOpen,setTicketOpen]=useState(false)
   const old=staticCustomerInvoices(customer.id)
   const sales=data.sales.filter(s=>s.customerId===customer.id)
   const activeSales=sales.filter(s=>s.status==='Completed')
@@ -32,16 +35,25 @@ export default function CustomerProfile({customer}:{customer:Customer}){
   ]
   const deliveries=[
     ...old.filter(row=>row.delivery).map(row=>[row.id,data.stores.find(store=>store.id===row.store)?.name||row.store,row.category,row.delivery,`${dateLabel(row.age)} 2026`]),
-    ...data.deliveries.filter(item=>item.customerId===customer.id).map(item=>[item.id,storeName(item.storeId),item.products,item.status,item.scheduledDate])
+    ...data.deliveries.filter(item=>item.customerId===customer.id).map(item=>[item.orderNumber,storeName(item.storeId),item.items.map(line=>`${line.name} × ${line.quantity}`).join(', '),item.status,item.scheduledDate||'Not scheduled'])
   ]
   const installations=[
     ...old.filter(row=>row.installation!=='Not required').map(row=>[row.category,`${dateLabel(row.age)} 2026`,row.installation]),
-    ...data.installations.filter(item=>item.customerId===customer.id).map(item=>[item.product,item.scheduledDate,item.status])
+    ...data.installations.filter(item=>item.customerId===customer.id).map(item=>[item.product,item.scheduledDate||'Not scheduled',item.status,item.serials?.join(', ')||`${item.quantity||1} unit(s)`])
   ]
-  const warranties=activeSales.flatMap(sale=>sale.lines.flatMap(line=>line.serials.map(serial=>[
-    line.name,serial,`${dateInIndia(sale.date)} · 12 months (illustrative)`,
-    sale.status==='Completed'?'Warranty recorded':'Reversed'
-  ])))
+  const warranties=[
+    ...data.warranties.filter(item=>item.customerId===customer.id).map(item=>{
+      const product=data.products.find(record=>record.id===item.productId)
+      return [product?.name||item.productId,item.serial,`${item.planName} · ${dateInIndia(item.startDate)} – ${dateInIndia(item.endDate)}`,item.status]
+    }),
+    ...activeSales.flatMap(sale=>sale.lines.flatMap(line=>line.serials.flatMap(serial=>{
+      const record=data.serials.find(item=>item.serial===serial&&item.status==='Sold'&&item.invoiceId===sale.invoiceNumber)
+      return record?.warrantyUntil?[[line.name,serial,`Serial-record manufacturer term · ends ${dateInIndia(record.warrantyUntil)}`,'Illustrative']]:[]
+    })))
+  ]
+  const serviceTickets=data.serviceTickets.filter(item=>item.customerId===customer.id)
+  const deliveryCount=data.deliveries.filter(item=>item.customerId===customer.id&&item.items.some(line=>line.deliveredQuantity>0)).length
+  const installCount=data.installations.filter(item=>item.customerId===customer.id&&item.status==='Completed').length
   return <section className="crm-profile">
     <nav className="crm-tabs" aria-label="Customer profile sections">{tabs.map(name=><button type="button" key={name} aria-pressed={tab===name} onClick={()=>setTab(name)}>{name}</button>)}</nav>
     {tab==='Overview'&&<div className="crm-profile-grid">
@@ -65,7 +77,16 @@ export default function CustomerProfile({customer}:{customer:Customer}){
     {tab==='Purchase history'&&(history.length?<DataTable columns={['Invoice number','Purchase date','Store','Products','Invoice amount','Payment status']} rows={history}/>:<EmptyState text="No purchases are recorded for this customer." />)}
     {tab==='Payments'&&(payments.length?<DataTable columns={['Payment date','Amount','Payment mode','Reference','Related invoice','Status']} rows={payments}/>:<EmptyState text="No payment records are available for this customer." />)}
     {tab==='Deliveries'&&(deliveries.length?<DataTable columns={['Order reference','Store','Products','Delivery status','Scheduled date']} rows={deliveries}/>:<EmptyState text="No delivery records are available for this customer." />)}
-    {tab==='Installations'&&(installations.length?<DataTable columns={['Product','Installation date','Status']} rows={installations}/>:<EmptyState text="No installation records are available for this customer." />)}
-    {tab==='Warranty & service'&&(warranties.length?<><DataTable columns={['Product','Serial number','Warranty details','Status']} rows={warranties}/><div className="crm-note">Warranty periods are illustrative demo information, not manufacturer terms.</div><EmptyState text="No service tickets are recorded for this customer."/></>:<EmptyState text="No serialised purchases or service tickets are recorded for this customer." />)}
+    {tab==='Installations'&&(installations.length?<DataTable columns={['Product','Installation date','Status','Serial / quantity']} rows={installations}/>:<EmptyState text="No installation records are available for this customer." />)}
+    {tab==='After-sales'&&<section className="crm-after-sales">
+      <div className="p7-profile-summary"><LifecycleRail active={serviceTickets.length?'service':installCount?'warranty':deliveryCount?'installation':'delivery'}/><Button onClick={()=>setTicketOpen(true)}>Create service ticket</Button></div>
+      <div className="p7-profile-section"><h3>Installations</h3>{installations.length?<DataTable columns={['Product','Appointment','Status','Serial / quantity']} rows={installations}/>:<EmptyState text="No installation records are available for this customer."/>}</div>
+      <div className="p7-profile-section"><h3>Warranty coverage</h3>{warranties.length?<DataTable columns={['Product','Serial number','Coverage term','Status']} rows={warranties}/>:<EmptyState text="No warranty records are available for this customer."/>}</div>
+      <div className="p7-profile-section"><h3>Service tickets</h3>{serviceTickets.length?<DataTable columns={['Ticket','Product','Reported issue','Status','Coverage']} rows={serviceTickets.map(item=>[
+        item.ticketNumber,data.products.find(product=>product.id===item.productId)?.name||item.productId,item.issue,item.status,item.warrantyCoverage
+      ])}/>:<EmptyState text="No service tickets are recorded for this customer."/>}</div>
+      <PrototypeNote>Warranty and service labels are fictional demo information. They do not represent verified manufacturer terms, an approved claim or an external service action.</PrototypeNote>
+      <ServiceTicketDialog open={ticketOpen} onOpenChange={setTicketOpen} source={{customerId:customer.id}}/>
+    </section>}
   </section>
 }

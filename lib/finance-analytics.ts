@@ -24,6 +24,16 @@ export function financeAnalytics(scope:Scope,offset:number,data:Phase3State){
     },0)
   },0)
   const stats=summary(rows,scope,offset)
+  const scopedDeliveries=data.deliveries.filter(order=>{
+    const sale=data.sales.find(item=>item.id===order.saleId&&item.status==='Completed')
+    if(!sale)return false
+    const age=daysBetween(sale.date,financeReferenceDate)
+    if(age<offset||age>=offset+scope.days||(scope.store&&sale.storeId!==scope.store))return false
+    return sale.lines.some(line=>order.items.some(item=>item.productId===line.productId)&&
+      (!scope.brand||line.brandId===scope.brand)&&(!scope.category||line.category===scope.category))
+  }).filter(order=>order.status!=='Cancelled')
+  const completedDeliveries=scopedDeliveries.filter(order=>order.items.length>0&&order.items.every(item=>item.deliveredQuantity>=item.quantity)).length
+  const pendingDeliveries=scopedDeliveries.filter(order=>!order.items.length||order.items.some(item=>item.deliveredQuantity<item.quantity)).length
   const legacyCollected=legacyRows.reduce((sum,row)=>sum+row.paid,0)
   const legacyOutstanding=legacyRows.reduce((sum,row)=>sum+Math.max(0,row.net-row.paid),0)
   const currentOutstanding=currentInvoices.reduce((sum,item)=>sum+item.balancePaise/100,0)
@@ -31,7 +41,8 @@ export function financeAnalytics(scope:Scope,offset:number,data:Phase3State){
   const outstanding=legacyOutstanding+currentOutstanding
   return {
     rows,
-    stats:{...stats,paid,out:outstanding,eff:stats.net?paid/stats.net*100:0},
+    stats:{...stats,paid,out:outstanding,eff:stats.net?paid/stats.net*100:0,pending:pendingDeliveries,
+      delivery:scopedDeliveries.length?completedDeliveries/scopedDeliveries.length*100:0},
     paymentModes:paymentModesFor(scope,offset,data,legacyRows)
   }
 }

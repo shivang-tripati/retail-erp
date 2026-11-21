@@ -1,8 +1,55 @@
 'use client'
+
 import {useState} from 'react'
 import {PageHeader,DataTable,DetailDrawer,SearchBar,Selector,EmptyState} from './foundation'
 import {Panel,ScopeBar,useScope} from './analytics-controls'
 import {useDemo} from './demo-provider'
-import {ledger,money,pct,summary,ratio} from '@/lib/demo-data'
-import {toAnalyticsInvoice} from '@/lib/phase3-data'
-export default function Performance(){const {scope,set}=useScope(),{data}=useDemo(),[search,q]=useState(''),[order,sort]=useState('Highest sales'),[id,open]=useState('');const additional=data.sales.filter(x=>x.status==='Completed').map(toAnalyticsInvoice),rows=ledger(scope,0,additional);const stats=data.stores.filter(s=>!scope.store||scope.store===s.id).map((s,i)=>{const result=summary(rows.filter(x=>x.store===s.id),{...scope,store:s.id});const target=(98000-(Number(s.id.slice(1))||i)%10*2400)*scope.days;return {s,...result,target,achievement:100*ratio(result.net,target)}});const item=stats.find(x=>x.s.id===id);const cols=['Store','City','Sales target','Actual sales','Achievement','Invoices','Average bill','Collections','Outstanding'];const values=(x:typeof stats[number])=>[x.s.name,x.s.city,money(x.target),money(x.net),pct(x.achievement),x.count,money(x.avg),money(x.paid),money(x.out)];const list=stats.filter(x=>`${x.s.name} ${x.s.city}`.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>order==='Store A–Z'?a.s.name.localeCompare(b.s.name):order==='Highest achievement'?b.achievement-a.achievement:order==='Lowest sales'?a.net-b.net:b.net-a.net);return <div className="phase"><PageHeader eyebrow="Analytics / Branch intelligence" title="Store performance" description="Compare sales, collections and target attainment across Delhi NCR."/><ScopeBar scope={scope} set={set} extended={false}/><Panel title="Branch comparison" meta={`${list.length} branches · Select a store to inspect its results`}><div className="filters"><SearchBar label="Search store or city" value={search} onChange={q}/><Selector label="Sort stores" value={order} onChange={sort} options={['Highest sales','Lowest sales','Highest achievement','Store A–Z']}/></div>{list.length?<DataTable columns={cols} rows={list.map(x=>[<button key={x.s.id} className="textlink" onClick={()=>open(x.s.id)}>{x.s.name}</button>,...values(x).slice(1)])}/>:<EmptyState text="No matching stores."/>}</Panel><DetailDrawer title={item?.s.name||'Branch summary'} open={!!item} onClose={()=>open('')}>{item&&<dl className="facts">{cols.map((c,i)=><div key={c}><dt>{c}</dt><dd>{values(item)[i]}</dd></div>)}</dl>}</DetailDrawer></div>}
+import {storeAnalytics} from '@/lib/phase8-analytics'
+import {compact,money,pct} from '@/lib/demo-data'
+
+export default function Performance(){
+  const {scope,set}=useScope(),{data}=useDemo()
+  const [search,q]=useState('')
+  const [sort,setSort]=useState('Highest sales')
+  const [id,open]=useState('')
+  const rows=storeAnalytics(data,scope).filter(row=>`${row.store.name} ${row.store.city}`.toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b)=>{
+      if(sort==='Store A–Z')return a.store.name.localeCompare(b.store.name)
+      if(sort==='Highest collections')return b.collectionsPaise-a.collectionsPaise
+      if(sort==='Lowest outstanding')return a.outstandingPaise-b.outstandingPaise
+      if(sort==='Highest delivery')return b.deliveryCompletionPct-a.deliveryCompletionPct
+      return b.netPaise-a.netPaise
+    })
+  const item=rows.find(row=>row.store.id===id)
+  const rupees=(paise:number)=>paise/100
+  return <div className="phase">
+    <PageHeader eyebrow="Analytics / Branch intelligence" title="Store performance" description="Compare connected sales, finance, inventory, delivery and after-sales results."/>
+    <ScopeBar scope={scope} set={set}/>
+    <Panel title="Branch comparison" meta={`${rows.length} stores · Select a branch for its performance`}>
+      <div className="filters">
+        <SearchBar label="Search store or city" value={search} onChange={q}/>
+        <Selector label="Sort stores" value={sort} onChange={setSort} options={['Highest sales','Highest collections','Lowest outstanding','Highest delivery','Store A–Z']}/>
+      </div>
+      {rows.length?<DataTable columns={['Store','City','Sales','Invoices','A bill','Collections','Outstanding','Reversals','Inventory','Delivery','Installation','Tickets']} rows={rows.map(row=>[
+        <button className="textlink" key={row.store.id} onClick={()=>open(row.store.id)}>{row.store.name}</button>,
+        row.store.city,compact(rupees(row.netPaise)),row.invoiceCount,compact(rupees(row.averageBillPaise)),
+        compact(rupees(row.collectionsPaise)),compact(rupees(row.outstandingPaise)),row.reversals,
+        compact(rupees(row.inventoryValuePaise)),pct(row.deliveryCompletionPct),pct(row.installationCompletionPct),row.serviceTickets
+      ])}/>:<EmptyState text="No stores match this selection."/>}
+    </Panel>
+    <DetailDrawer title={item?.store.name||'Store performance'} open={!!item} onClose={()=>open('')}>
+      {item&&<dl className="facts">
+        <div><dt>Net sales</dt><dd>{compact(rupees(item.netPaise))}</dd></div>
+        <div><dt>Invoice count</dt><dd>{item.invoiceCount}</dd></div>
+        <div><dt>Average bill</dt><dd>{compact(rupees(item.averageBillPaise))}</dd></div>
+        <div><dt>Collections</dt><dd>{compact(rupees(item.collectionsPaise))}</dd></div>
+        <div><dt>Outstanding</dt><dd>{compact(rupees(item.outstandingPaise))}</dd></div>
+        <div><dt>Reversed invoices</dt><dd>{item.reversals}</dd></div>
+        <div><dt>Inventory value</dt><dd>{compact(rupees(item.inventoryValuePaise))}</dd></div>
+        <div><dt>Delivery completion</dt><dd>{pct(item.deliveryCompletionPct)}</dd></div>
+        <div><dt>Installation completion</dt><dd>{pct(item.installationCompletionPct)}</dd></div>
+        <div><dt>Service tickets</dt><dd>{item.serviceTickets}</dd></div>
+      </dl>}
+    </DetailDrawer>
+  </div>
+}

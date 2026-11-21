@@ -5,6 +5,7 @@ import {Button} from '../ui/button'
 import {Input} from '../ui/input'
 import {Selector} from '../foundation'
 import {currency,type InvoiceCalculation,type Product,type SerialRecord} from '@/lib/phase3-data'
+import type {FulfilmentMode} from '@/lib/phase6-types'
 import type {CartLine} from './pos-types'
 import SerialAssignment from './serial-assignment'
 
@@ -12,7 +13,7 @@ type Props={
   cart:CartLine[];products:Product[];stock:Record<string,number>;serials:SerialRecord[]
   calculation:InvoiceCalculation|null;cartDiscountPct:number;discountCode:string
   onQty:(productId:string,quantity:number)=>void;onRemove:(productId:string)=>void
-  onItemDiscount:(productId:string,value:number)=>void;onCartDiscount:(value:number)=>void
+  onItemDiscount:(productId:string,value:number)=>void;onFulfilment:(productId:string,value:FulfilmentMode)=>void;onCartDiscount:(value:number)=>void
   onDiscountCode:(value:string)=>void;onSerial:(productId:string,index:number,serial:string)=>void
 }
 export default function CartSummary(props:Props){
@@ -23,6 +24,7 @@ export default function CartSummary(props:Props){
         <div className="pos-cart-title"><strong>{item.name}</strong><small>{item.sku} · {currency(item.pricePaise)} each · {props.stock[item.id]||0} available</small></div>
         <div className="pos-cart-controls"><div className="pos-quantity" aria-label={`Quantity for ${item.name}`}><button type="button" aria-label={`Remove one ${item.name}`} onClick={()=>props.onQty(item.id,line.quantity-1)}><Minus size={13}/></button><span>{line.quantity}</span><button type="button" aria-label={`Add one ${item.name}`} disabled={line.quantity>=props.stock[item.id]} onClick={()=>props.onQty(item.id,line.quantity+1)}><Plus size={13}/></button></div>
           <label className="pos-discount">Item discount %<Input aria-label={`Item discount for ${item.name}`} type="number" min="0" max="30" step="0.5" value={line.itemDiscountPct} onChange={event=>props.onItemDiscount(item.id,Number(event.target.value))}/></label>
+          <label className="crm-field pos-fulfilment-mode">Fulfilment<select aria-label={`Fulfilment for ${item.name}`} value={line.fulfilmentMode} onChange={event=>props.onFulfilment(item.id,event.target.value==='Delivery'?'Delivery':'Counter pickup')}><option>Delivery</option><option>Counter pickup</option></select></label>
           <Button type="button" variant="ghost" size="icon-sm" aria-label={`Remove ${item.name} from cart`} onClick={()=>props.onRemove(item.id)}><Trash2 size={15}/></Button>
         </div>
         {item.serialRequired&&<SerialAssignment product={item} line={line} serials={props.serials} allLines={props.cart} onSelect={(index,serial)=>props.onSerial(item.id,index,serial)}/>}

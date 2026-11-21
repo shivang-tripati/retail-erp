@@ -3,8 +3,72 @@ import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 
 import {initialStores,initialBrands,initialUsers,initialAlerts,initialSettings} from '@/lib/demo-data'
 import {initialPhase3State,type Payment,type Product,type Sale} from '@/lib/phase3-data'
 import {initialPhase4State,warehouseLocationId} from '@/lib/phase4-data'
-const seed={stores:initialStores,brands:initialBrands,users:initialUsers,alerts:initialAlerts,settings:initialSettings,...initialPhase3State,...initialPhase4State};type State=typeof seed
-const C=createContext<{data:State;update:<K extends keyof State>(k:K,v:State[K])=>void;transact:(prepare:(current:State)=>State)=>void}|null>(null)
+import {initialPhase6State} from '@/lib/phase6-data'
+import type {Delivery,DeliveryActivity,DeliveryStatus} from '@/lib/phase6-types'
+import {initialPhase7State} from '@/lib/phase7-data'
+import type {Installation,InstallationActivity} from '@/lib/phase7-types'
+const seed={stores:initialStores,brands:initialBrands,users:initialUsers,alerts:initialAlerts,settings:initialSettings,...initialPhase3State,...initialPhase4State,...initialPhase6State,...initialPhase7State};type State=typeof seed
+const C=createContext<{data:State;update:<K extends keyof State>(k:K,v:State[K])=>void;transact:(prepare:(current:State)=>State)=>void;resetDemo:()=>void}|null>(null)
+type LegacyDelivery={id:string;saleId:string;customerId:string;storeId:string;products:string;status:string;scheduledDate:string}
+const deliveryStatuses:DeliveryStatus[]=['Pending','Scheduled','Ready for Dispatch','Dispatched','In Transit','Out for Delivery','Delivered','Failed','Rescheduled','Cancelled']
+function normalizeDelivery(saved:Delivery|LegacyDelivery,sales:Sale[],customers:State['customers']):Delivery{
+  const sale=sales.find(item=>item.id===saved.saleId)
+  const customer=customers.find(item=>item.id===saved.customerId)
+  if('items' in saved&&Array.isArray(saved.items)){
+    const status=sale?.status==='Reversed'?'Cancelled':deliveryStatuses.includes(saved.status)?saved.status:'Pending'
+    return {...saved,status,items:saved.items.map(item=>({...item,serials:[...(item.serials||[])],dispatchedSerials:[...(item.dispatchedSerials||[])],deliveredSerials:[...(item.deliveredSerials||[])]}))}
+  }
+  const legacy=saved as LegacyDelivery
+  const line=sale?.lines.find(item=>item.name===legacy.products)
+  const status=sale?.status==='Reversed'||legacy.status==='Cancelled by invoice reversal'?'Cancelled':legacy.status==='Ready for collection'?'Pending':
+    deliveryStatuses.includes(legacy.status as DeliveryStatus)?legacy.status as DeliveryStatus:'Pending'
+  return {
+    id:legacy.id,orderNumber:`DO-${sale?.invoiceNumber||legacy.id}`,saleId:legacy.saleId,customerId:legacy.customerId,storeId:legacy.storeId,
+    items:line?[{id:`${saved.id}-${line.productId}`,saleLineId:`${sale!.id}-${line.productId}`,productId:line.productId,name:line.name,sku:line.sku,
+      quantity:line.quantity,serials:[...line.serials],dispatchedQuantity:0,dispatchedSerials:[],deliveredQuantity:0,deliveredSerials:[]}]:[],
+    status,deliveryAddress:customer?`${customer.address}, ${customer.city}, ${customer.state} ${customer.pinCode}`:'',
+    scheduledDate:saved.scheduledDate||'',timeSlot:'',deliveryTeamId:'',vehicleId:'',priority:'Standard',instructions:'',
+    createdAt:sale?.date||legacy.scheduledDate||new Date().toISOString(),createdBy:sale?.createdBy||'Demo migration',
+    dispatchedAt:'',dispatchedBy:'',manifestId:'',updatedAt:sale?.date||legacy.scheduledDate||new Date().toISOString()
+  }
+}
+function normalizeInstallation(saved:Installation,sales:Sale[],deliveries:Delivery[],customers:State['customers'],products:Product[]):Installation{
+  const delivery=deliveries.find(item=>item.id===saved.deliveryId||item.id===saved.saleId||item.saleId===saved.saleId)
+  const sale=sales.find(item=>item.id===saved.saleId)||sales.find(item=>item.id===delivery?.saleId)
+  const item=delivery?.items.find(record=>record.id===saved.deliveryItemId||record.productId===saved.productId||record.name===saved.product)
+  const line=sale?.lines.find(record=>record.productId===saved.productId||record.name===saved.product||record.productId===item?.productId)
+  const product=products.find(record=>record.id===line?.productId||record.id===item?.productId)
+  const customer=customers.find(record=>record.id===saved.customerId)
+  const status=saved.status==='Awaiting scheduling'?'Pending':saved.status==='Cancelled by invoice reversal'?'Cancelled':saved.status
+  const date=saved.createdAt||delivery?.updatedAt||sale?.date||new Date().toISOString()
+  return {
+    ...saved,
+    saleId:sale?.id||saved.saleId,
+    product:product?.name||saved.product,
+    productId:product?.id||saved.productId,
+    storeId:saved.storeId||delivery?.storeId||sale?.storeId,
+    deliveryId:delivery?.id||saved.deliveryId,
+    deliveryItemId:item?.id||saved.deliveryItemId,
+    serials:[...(saved.serials||item?.deliveredSerials||[])],
+    quantity:saved.quantity||item?.deliveredQuantity||1,
+    scheduledDate:saved.scheduledDate==='Not scheduled'?'':saved.scheduledDate||'',
+    status,
+    address:saved.address||(customer?`${customer.address}, ${customer.city}, ${customer.state} ${customer.pinCode}`:delivery?.deliveryAddress||''),
+    preferredDate:saved.preferredDate||'',
+    timeSlot:saved.timeSlot||'',
+    technicianId:saved.technicianId||'',
+    serviceType:saved.serviceType||'On-site',
+    instructions:saved.instructions||'',
+    createdAt:date,
+    updatedAt:saved.updatedAt||date,
+    checklist:[...(saved.checklist||[])],
+    customerConfirmed:saved.customerConfirmed||false,
+    reportReference:saved.reportReference||''
+  }
+}
+function mergeRows<T extends {id:string}>(defaults:T[],saved:T[]):T[]{
+  return [...defaults.filter(item=>!saved.some(existing=>existing.id===item.id)),...saved]
+}
 function restore(saved:string):State{
   const parsed=JSON.parse(saved) as Partial<State>,merged={...seed,...parsed}
   const savedSales=parsed.sales||[]
@@ -12,6 +76,18 @@ function restore(saved:string):State{
   const savedPayments=parsed.payments||[]
   const payments=[...seed.payments.filter(item=>!savedPayments.some(existing=>existing.id===item.id)),...savedPayments]
   const paymentReversals=merged.paymentReversals||[]
+  const savedDeliveryRows=(parsed.deliveries||[]) as Array<Delivery|LegacyDelivery>
+  const normalizedSavedDeliveries=savedDeliveryRows.map(item=>normalizeDelivery(item,sales,merged.customers))
+  const savedDeliverySaleIds=new Set(normalizedSavedDeliveries.map(item=>item.saleId))
+  const deliveries=[...seed.deliveries.filter(item=>!savedDeliverySaleIds.has(item.saleId)),...normalizedSavedDeliveries]
+  const deliveryIds=new Set(deliveries.map(item=>item.id))
+  const deliveryManifests=parsed.deliveryManifests||seed.deliveryManifests
+  const deliveryActivities=[...(seed.deliveryActivities.filter(item=>deliveryIds.has(item.deliveryId)&&!(parsed.deliveryActivities||[]).some(existing=>existing.id===item.id))),
+    ...((parsed.deliveryActivities||[]) as DeliveryActivity[])]
+  const deliveryExceptions=(parsed.deliveryExceptions||seed.deliveryExceptions).filter(item=>deliveryIds.has(item.deliveryId))
+  const deliveryProofs=(parsed.deliveryProofs||seed.deliveryProofs).filter(item=>deliveryIds.has(item.deliveryId))
+  const deliveryTeams=[...seed.deliveryTeams.filter(item=>!(parsed.deliveryTeams||[]).some(existing=>existing.id===item.id)),...(parsed.deliveryTeams||[])]
+  const deliveryVehicles=[...seed.deliveryVehicles.filter(item=>!(parsed.deliveryVehicles||[]).some(existing=>existing.id===item.id)),...(parsed.deliveryVehicles||[])]
   const knownAllocations=parsed.paymentAllocations||[]
   const paymentAllocations=[
     ...seed.paymentAllocations.filter(item=>!knownAllocations.some(existing=>existing.id===item.id)),
@@ -82,8 +158,31 @@ function restore(saved:string):State{
     ...seed.movements.filter(movement=>!merged.movements.some(existing=>existing.id===movement.id)&&
       (!openingReferences.has(movement.reference)||!!movement.serial||!products.find(item=>item.id===movement.productId)?.serialRequired))
   ]
+  const deliveryCreationActivities:DeliveryActivity[]=deliveries.flatMap(order=>deliveryActivities.some(item=>item.deliveryId===order.id)?[]:[{
+    id:`DA-MIG-${order.id}`,deliveryId:order.id,type:'Order created',date:order.createdAt,actor:order.createdBy,status:order.status,notes:'Delivery record migrated from the earlier demo session.'
+  }])
+  const savedInstallations=parsed.installations||[]
+  const normalizedInstallations=savedInstallations.map(item=>normalizeInstallation(item,sales,deliveries,merged.customers,products))
+  const installations=mergeRows(seed.installations,normalizedInstallations)
+  const installationIds=new Set(installations.map(item=>item.id))
+  const savedInstallationActivities=(parsed.installationActivities||[]) as InstallationActivity[]
+  const installationActivities=mergeRows(
+    seed.installationActivities.filter(item=>installationIds.has(item.installationId)),
+    savedInstallationActivities.filter(item=>installationIds.has(item.installationId))
+  )
+  const technicians=mergeRows(seed.technicians,parsed.technicians||[])
+  const warrantyPlans=mergeRows(seed.warrantyPlans,parsed.warrantyPlans||[])
+  const warranties=mergeRows(seed.warranties,parsed.warranties||[])
+  const serviceTickets=mergeRows(seed.serviceTickets,parsed.serviceTickets||[])
+  const serviceTicketIds=new Set(serviceTickets.map(item=>item.id))
+  const serviceActivities=mergeRows(
+    seed.serviceActivities.filter(item=>serviceTicketIds.has(item.ticketId)),
+    (parsed.serviceActivities||[]).filter(item=>serviceTicketIds.has(item.ticketId))
+  )
   return {...merged,products,inventory,serials,grns,movements,sales:reconciledSales,payments,paymentAllocations,paymentReversals:paymentReversalsMerged,
-    paymentReconciliations,recoveryCases,recoveryActivities,financialAudit:[...financialAudit,...reversalAudit]}
+    deliveryTeams,deliveryVehicles,deliveryManifests,deliveries,deliveryActivities:[...deliveryActivities,...deliveryCreationActivities],
+    deliveryExceptions,deliveryProofs,paymentReconciliations,recoveryCases,recoveryActivities,financialAudit:[...financialAudit,...reversalAudit],
+    installations,installationActivities,technicians,warrantyPlans,warranties,serviceTickets,serviceActivities}
 }
 export function DemoProvider({children}:{children:ReactNode}){
   const [data,setData]=useState(seed),[ready,setReady]=useState(false),state=useRef<State>(seed)
@@ -107,6 +206,13 @@ export function DemoProvider({children}:{children:ReactNode}){
   }
   function update<K extends keyof State>(key:K,value:State[K]){commit({...state.current,[key]:value})}
   function transact(prepare:(current:State)=>State){commit(prepare(state.current))}
-  return <C.Provider value={{data,update,transact}}>{children}</C.Provider>
+  function resetDemo(){
+    const baseline=JSON.parse(JSON.stringify(seed)) as State
+    try{sessionStorage.setItem('retailos-phase2-v1',JSON.stringify(baseline))}
+    catch(error){throw new Error('Could not reset demo data in browser storage.',{cause:error})}
+    state.current=baseline
+    setData(baseline)
+  }
+  return <C.Provider value={{data,update,transact,resetDemo}}>{children}</C.Provider>
 }
 export function useDemo(){const c=useContext(C);if(!c)throw new Error('Demo provider required');return c}

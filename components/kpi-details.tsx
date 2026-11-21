@@ -19,7 +19,7 @@ export default function Kpis(){
     ['Collection efficiency','eff',pct,'Recorded collections ÷ net sales'],
     ['Outstanding receivables','out',money,'Open active invoice balances'],
     ['Inventory turnover','turn',(value:number)=>value.toFixed(2)+'×','Cost of sales ÷ average inventory'],
-    ['Delivery completion','delivery',pct,'Completed deliveries ÷ invoices'],
+    ['Delivery completion','delivery',pct,'Completed delivery orders ÷ active delivery orders'],
     ['Installation completion','install',pct,'Completed ÷ required installations']
   ] as const
   return <div className="phase">

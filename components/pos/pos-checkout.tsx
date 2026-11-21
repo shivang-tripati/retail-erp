@@ -18,8 +18,11 @@ import InvoicePreview from './invoice-preview'
 import type {CartLine,SplitPayment} from './pos-types'
 import {calculateInvoice,currency,findStoreState,type Customer,type Payment,type Product,type Sale,type SaleLine} from '@/lib/phase3-data'
 import {invoicePayments as paymentsForInvoice} from '@/lib/finance'
+import {isDeliveryEligibleCategory} from '@/lib/phase6-data'
+import {createPosDeliveryOrder} from '@/lib/fulfilment'
 import type {InventoryMovement} from '@/lib/phase4-data'
 import type {Row} from '@/lib/demo-data'
+import type {FulfilmentMode} from '@/lib/phase6-types'
 
 const moneyToPaise=(value:string)=>{
   const parts=value.trim().split('.')
@@ -65,7 +68,7 @@ export default function POSCheckout(){
     const available=inventoryFor(product.id),line=cart.find(item=>item.productId===product.id)
     if(available<1){setError('This product is no longer available at the selected store.');return}
     if(line&&line.quantity>=available){setError(`Only ${available} unit${available===1?'':'s'} of ${product.name} remain at this store.`);return}
-    setCart(current=>line?current.map(item=>item.productId===product.id?{...item,quantity:item.quantity+1}:item):[...current,{productId:product.id,quantity:1,itemDiscountPct:0,serials:[]}])
+    setCart(current=>line?current.map(item=>item.productId===product.id?{...item,quantity:item.quantity+1}:item):[...current,{productId:product.id,quantity:1,itemDiscountPct:0,serials:[],fulfilmentMode:isDeliveryEligibleCategory(product.category)?'Delivery':'Counter pickup'}])
     setError('')
   }
   function changeQuantity(productId:string,quantity:number){
@@ -81,6 +84,7 @@ export default function POSCheckout(){
       return {...item,serials}
     }))
   }
+  function changeFulfilment(productId:string,value:FulfilmentMode){setCart(current=>current.map(item=>item.productId===productId?{...item,fulfilmentMode:value}:item))}
   function splitChange(id:string,key:keyof SplitPayment,value:string){setSplit(current=>current.map(item=>item.id===id?{...item,[key]:value}:item))}
   function registerCustomer(customer:Customer){
     try{update('customers',[...data.customers,customer]);setCustomerId(customer.id);setCustomerForm(false);toast.success(`${customer.name} registered for checkout`)}
@@ -139,7 +143,7 @@ export default function POSCheckout(){
         const invoiceId=`sale-${crypto.randomUUID()}`
         const invoiceLines:SaleLine[]=products.map((product,index)=>{
           const computed=totals.lines[index]
-          return {productId:product.id,name:product.name,brandId:product.brandId,sku:product.sku,model:product.model,category:product.category,quantity:cart[index].quantity,unitPricePaise:product.pricePaise,itemDiscountPct:cart[index].itemDiscountPct,itemDiscountPaise:computed.itemDiscountPaise,cartDiscountPaise:computed.cartDiscountPaise,taxablePaise:computed.taxablePaise,gstRate:product.gstRate,taxPaise:computed.taxPaise,serials:product.serialRequired?[...cart[index].serials]:[]}
+          return {productId:product.id,name:product.name,brandId:product.brandId,sku:product.sku,model:product.model,category:product.category,quantity:cart[index].quantity,unitPricePaise:product.pricePaise,itemDiscountPct:cart[index].itemDiscountPct,itemDiscountPaise:computed.itemDiscountPaise,cartDiscountPaise:computed.cartDiscountPaise,taxablePaise:computed.taxablePaise,gstRate:product.gstRate,taxPaise:computed.taxPaise,serials:product.serialRequired?[...cart[index].serials]:[],fulfilmentMode:cart[index].fulfilmentMode}
         })
         const entries:Omit<Payment,'id'|'invoiceId'|'customerId'|'date'>[]=paymentMode==='Split Payment'
           ?split.map((item,index)=>({amountPaise:receivedInput![index],mode:item.mode,reference:item.reference.trim(),financier:item.mode==='Financing / EMI'?item.financier.trim():''}))
@@ -166,8 +170,10 @@ export default function POSCheckout(){
           stockByKey.set(key,{...record,quantity:record.quantity-line.quantity})
         }
         const soldSerials=new Set(cart.flatMap(line=>line.serials.filter(Boolean)))
-        const newDeliveries=invoiceLines.map(line=>({id:`DEL-${invoiceNumber}-${line.productId}`,saleId:invoiceId,customerId:customer.id,storeId,products:line.name,status:'Ready for collection',scheduledDate:now.slice(0,10)}))
-        const newInstallations=invoiceLines.filter(line=>line.category==='Home appliances'||line.category==='TV & audio').map(line=>({id:`INS-${invoiceNumber}-${line.productId}`,saleId:invoiceId,customerId:customer.id,product:line.name,scheduledDate:'Not scheduled',status:'Not scheduled'}))
+        const newDelivery=createPosDeliveryOrder(sale,customer,'Aarav Sharma',now)
+        const newDeliveries=newDelivery?[newDelivery]:[]
+        const deliveryActivities=newDeliveries.map(order=>({id:crypto.randomUUID(),deliveryId:order.id,type:'Order created' as const,
+          date:now,actor:'Aarav Sharma',status:'Pending' as const,notes:`Created from completed invoice ${invoiceNumber}.`}))
         const audit={id:crypto.randomUUID(),date:now,action:'Sale completed',actor:'Aarav Sharma',reference:invoiceNumber,detail:`${customer.name} · ${chosenStore.name} · ${currency(totals.totalPaise)}`}
         const financialAudit=payments.flatMap(payment=>[
           {id:crypto.randomUUID(),reference:payment.reference||payment.id,activity:'Payment recorded' as const,date:now,actor:'Aarav Sharma',reason:`POS collection · ${payment.mode}`,customerId:customer.id,invoiceId:invoiceNumber},
@@ -183,7 +189,7 @@ export default function POSCheckout(){
           financialAudit:[...current.financialAudit,...financialAudit],
           inventory:[...current.inventory].map(row=>stockByKey.get(`${row.storeId}:${row.productId}`)||row),
           serials:current.serials.map(serial=>soldSerials.has(serial.serial)?{...serial,status:'Sold',invoiceId:invoiceNumber}:serial),
-          deliveries:[...current.deliveries,...newDeliveries],installations:[...current.installations,...newInstallations],
+          deliveries:[...current.deliveries,...newDeliveries],deliveryActivities:[...current.deliveryActivities,...deliveryActivities],
           audit:[...current.audit,audit],movements:[...current.movements,...movements]
         }
       })
@@ -212,7 +218,7 @@ export default function POSCheckout(){
       <CartSummary cart={cart} products={data.products} stock={stock} serials={data.serials.filter(item=>item.storeId===storeId)} calculation={calculation}
         cartDiscountPct={discountPct} discountCode={discountCode}
         onQty={changeQuantity} onRemove={productId=>setCart(current=>current.filter(line=>line.productId!==productId))}
-        onItemDiscount={(productId,value)=>setCart(current=>current.map(line=>line.productId===productId?{...line,itemDiscountPct:value}:line))}
+        onItemDiscount={(productId,value)=>setCart(current=>current.map(line=>line.productId===productId?{...line,itemDiscountPct:value}:line))} onFulfilment={changeFulfilment}
         onCartDiscount={setDiscountPct} onDiscountCode={setDiscountCode} onSerial={changeSerial}/>
     </div>
     <div className="pos-lower-grid">
