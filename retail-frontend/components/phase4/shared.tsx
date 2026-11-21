@@ -2,6 +2,7 @@
 import type {ChangeEvent} from 'react'
 import {Input} from '../ui/input'
 import {warehouseLocationId,warehouseLocationName} from '@/lib/phase4-data'
+import {SearchableSelector} from '../foundation'
 
 export function locationName(id:string,stores:{id:string;name:string}[]){
   if(!id)return '—'
@@ -27,5 +28,5 @@ export function Field({label,value,onChange,type='text',required=true,step,place
 }
 
 export function SelectField({label,value,onChange,options,required=true}:{label:string;value:string;onChange:(value:string)=>void;options:{value:string;label:string}[];required?:boolean}){
-  return <label className="crm-field">{label}{required&&<span aria-hidden="true"> *</span>}<select aria-label={label} required={required} value={value} onChange={event=>onChange(event.target.value)}>{options.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+  return <div className="crm-field"><SearchableSelector label={label} value={value} required={required} onChange={onChange} options={options.map(item=>({value:item.value,label:item.label}))}/></div>
 }

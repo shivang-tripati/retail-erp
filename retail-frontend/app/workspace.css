@@ -1444,3 +1444,120 @@ main {
         margin-top: 16px
     }
 }
+
+.smart-selector {
+    position: relative;
+    min-width: 0
+}
+
+.smart-selector>label {
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 550
+}
+
+.smart-selector-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff
+}
+
+.smart-selector-control>svg {
+    color: #75869a
+}
+
+.smart-selector-control input {
+    min-width: 0;
+    flex: 1;
+    border: 0 !important;
+    box-shadow: none !important;
+    height: 34px;
+    padding: 0 !important
+}
+
+.smart-selector-control button {
+    border: 0;
+    background: #eef3f8;
+    border-radius: 4px;
+    color: #53677d;
+    font-size: 10px;
+    padding: 4px 5px
+}
+
+.smart-selector-menu {
+    position: absolute;
+    z-index: 45;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #fff;
+    box-shadow: 0 12px 28px #142a4326;
+    padding: 5px
+}
+
+.smart-selector-menu button {
+    width: 100%;
+    display: grid;
+    gap: 2px;
+    text-align: left;
+    padding: 9px;
+    border-radius: 5px
+}
+
+.smart-selector-menu button:hover,
+.smart-selector-menu button[aria-selected=true] {
+    background: #edf3fc
+}
+
+.smart-selector-menu b {
+    font-size: 12px
+}
+
+.smart-selector-menu small {
+    color: var(--slate);
+    font-size: 10px
+}
+
+.smart-selector-menu p {
+    padding: 10px;
+    color: var(--slate);
+    font-size: 12px
+}
+
+.smart-scan {
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 550
+}
+
+.smart-scan>div {
+    display: flex;
+    align-items: center;
+    gap: 7px
+}
+
+.smart-scan input {
+    min-width: 0;
+    flex: 1
+}
+
+.serial-unit,
+.crm-field .smart-selector {
+    margin-top: 8px
+}
+
+.pos-customer-select {
+    min-width: 250px
+}

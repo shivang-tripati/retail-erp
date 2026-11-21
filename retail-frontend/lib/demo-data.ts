@@ -4,7 +4,10 @@ export type Directory = 'users'|'stores'|'brands'
 export const categories=['Mobile devices','Home appliances','TV & audio','Computing','Small appliances']
 const companies=['Aviora','Brivon','Celsora','Denvik','Elaris','Fynova','Gravell','Heliqa','Iveron','Jovelle','Kynaro','Lumetra','Miravo','Norvexia','Orvanta']
 const first=['Aarav','Nisha','Kabir','Meera','Rohan','Diya','Ishaan','Kavya','Arjun','Tara'];const last=['Sharma','Batra','Sethi','Kapoor'];
-export const initialStores:Row[]=stores.map((name,i)=>({id:`S${i}`,name,status:'Active',code:`NCR-${String(i+1).padStart(2,'0')}`,city:['Noida','Ghaziabad','Faridabad','Gurugram'][i-5]||'New Delhi',address:`${18+i*3}, Market Road, ${name}`,manager:first[i]+' Batra',phone:`01142${String(762001+i)}`}))
+export const initialStores:Row[]=stores.map((name,i)=>({id:`S${i}`,name,status:'Active',code:`NCR-${String(i+1).padStart(2,'0')}`,
+  city:['Noida','Ghaziabad','Faridabad','Gurugram'][i-5]||'New Delhi',
+  state:['Uttar Pradesh','Uttar Pradesh','Haryana','Haryana'][i-5]||'Delhi',
+  address:`${18+i*3}, Market Road, ${name}`,manager:first[i]+' Batra',phone:`01142${String(762001+i)}`}))
 export const initialBrands:Row[]=companies.map((name,i)=>({id:`B${i}`,name,status:'Active',code:`BR-${100+i}`,categories:categories[i%5],products:String(i<5?34:33)}))
 export const initialUsers:Row[]=Array.from({length:40},(_,i)=>({id:`U${i}`,name:first[i%10]+' '+last[Math.floor(i/10)],email:`${first[i%10].toLowerCase()}.${last[Math.floor(i/10)].toLowerCase()}@sharma.example`,role:i>=10&&i<20?roles[1]:roles[i%6],store:`S${i%10}`,status:i===39?'Inactive':'Active',lastActive:`${20-i%4}/11/2026`}))
 export const endDay=Date.UTC(2026,10,20);export const dayDate=(age:number)=>new Date(endDay-age*86400000);export const dateLabel=(age:number)=>dayDate(age).toLocaleDateString('en-IN',{day:'2-digit',month:'short',timeZone:'Asia/Kolkata'})

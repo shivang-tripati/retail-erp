@@ -6,6 +6,7 @@ import type {Customer} from '@/lib/phase3-data'
 import {Input} from './ui/input'
 import {Button} from './ui/button'
 import {DialogFooter} from './ui/dialog'
+import {citiesForState,indianStates} from '@/lib/india-locations'
 
 type Props = {customer?:Customer;initial?:Partial<Customer>;onSave:(customer:Customer)=>void;onCancel:()=>void}
 export default function CustomerForm({customer,initial,onSave,onCancel}:Props){
@@ -18,6 +19,7 @@ export default function CustomerForm({customer,initial,onSave,onCancel}:Props){
     notes:customer?.notes||'',status:customer?.status||'Active',since:customer?.since||new Date().toISOString()
   })
   const [error,setError]=useState('')
+  const availableCities=citiesForState(form.state)
   function submit(event:FormEvent<HTMLFormElement>){
     event.preventDefault()
     const mobile=/^[6-9]\d{9}$/
@@ -39,8 +41,8 @@ export default function CustomerForm({customer,initial,onSave,onCancel}:Props){
       {field('alternateMobile','Alternate mobile','tel',false,'[6-9][0-9]{9}')}
       {field('email','Email address','email',false)}
       {field('address','Address')}
-      {field('city','City')}
-      {field('state','State')}
+      <label className="crm-field">State<span aria-hidden="true"> *</span><select aria-label="State" required value={form.state} onChange={event=>{const state=event.target.value;setForm(current=>({...current,state,city:citiesForState(state).includes(current.city)?current.city:''}))}}><option value="">Select state</option>{indianStates.map(state=><option key={state} value={state}>{state}</option>)}</select></label>
+      <label className="crm-field">City<span aria-hidden="true"> *</span><select aria-label="City" required value={form.city} disabled={!form.state} onChange={event=>setForm(current=>({...current,city:event.target.value}))}><option value="">{form.state?'Select city':'Select a state first'}</option>{availableCities.map(city=><option key={city} value={city}>{city}</option>)}{form.city&&!availableCities.includes(form.city)&&<option value={form.city}>{form.city}</option>}</select></label>
       {field('pinCode','PIN code','text',true,'[1-9][0-9]{5}')}
       <label className="crm-field">Customer type<span aria-hidden="true"> *</span><select aria-label="Customer type" required value={form.type} onChange={event=>setForm(current=>({...current,type:event.target.value}))}><option>Individual</option><option>Business</option></select></label>
       <label className="crm-field crm-field-wide">Notes<textarea aria-label="Notes" rows={3} value={form.notes} onChange={event=>setForm(current=>({...current,notes:event.target.value}))}/></label>

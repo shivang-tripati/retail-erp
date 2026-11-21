@@ -5,7 +5,7 @@ import {ArrowRight,ReceiptText,UserRoundPlus} from 'lucide-react'
 import {toast} from 'sonner'
 import {useDemo} from '../demo-provider'
 import {useWorkspace} from '../workspace'
-import {PageHeader,DetailDrawer,Selector} from '../foundation'
+import {PageHeader,DetailDrawer,Selector,SearchableSelector} from '../foundation'
 import {Panel} from '../analytics-controls'
 import {Button} from '../ui/button'
 import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogTitle} from '../ui/dialog'
@@ -207,9 +207,7 @@ export default function POSCheckout(){
     </PageHeader>
     <div className="pos-context-bar">
       <Selector label="Checkout store" value={storeRecord?.name||''} options={activeStores.map(item=>item.name)} onChange={value=>{setStoreId(activeStores.find(item=>item.name===value)?.id||'');setError('')}}/>
-      <label className="pos-customer-select">Customer
-        <select aria-label="Select checkout customer" value={customerId} onChange={event=>setCustomerId(event.target.value)}><option value="">Select a customer</option>{data.customers.filter(item=>item.status==='Active').map(item=><option key={item.id} value={item.id}>{item.name} · {item.mobile} · {item.id}</option>)}</select>
-      </label>
+      <div className="pos-customer-select"><SearchableSelector label="Customer" required value={customerId} placeholder="Search name, mobile or customer ID" onChange={setCustomerId} options={data.customers.filter(item=>item.status==='Active').map(item=>({value:item.id,label:item.name,meta:`${item.mobile} · ${item.id}`,keywords:item.email}))}/></div>
       <Button variant="outline" onClick={()=>setCustomerForm(true)}><UserRoundPlus size={15}/> Register customer</Button>
       {activeCustomer&&<Button variant="ghost" onClick={()=>setProfileOpen(true)}>View customer profile</Button>}
     </div>

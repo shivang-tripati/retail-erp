@@ -2,7 +2,7 @@
 import {useState,type FormEvent} from 'react'
 import {useRouter} from 'next/navigation'
 import {toast} from 'sonner'
-import {PageHeader,DataTable,EmptyState,SearchBar,Selector,Confirmation,DetailDrawer} from '../foundation'
+import {PageHeader,DataTable,EmptyState,SearchBar,Selector,Confirmation,DetailDrawer,ScanField} from '../foundation'
 import {Panel} from '../analytics-controls'
 import {Button} from '../ui/button'
 import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogTitle} from '../ui/dialog'
@@ -126,8 +126,8 @@ export function SerialScanning(){
   const acceptedExpected=line?Math.max(0,line.receivedQuantity-line.damagedQuantity):0,damagedExpected=line?.damagedQuantity||0
   const damagedSerials=line?.damagedSerials||[]
   const expected=line?.receivedQuantity||0
-  function addSerial(event:FormEvent<HTMLFormElement>){
-    event.preventDefault();const clean=serial.trim()
+  function addSerial(event?:FormEvent<HTMLFormElement>){
+    event?.preventDefault();const clean=serial.trim()
     if(!grn||!line||!product?.serialRequired){setError('Choose a draft GRN and a serial-controlled product.');return}
     if(!clean){setError('Enter or scan a serial number.');return}
     if(data.serials.some(item=>item.serial.toLowerCase()===clean.toLowerCase())||grn.items.some(item=>[...item.serials,...(item.damagedSerials||[])].some(value=>value.toLowerCase()===clean.toLowerCase()))){setError('This serial number is already registered or scanned.');return}
@@ -154,7 +154,7 @@ export function SerialScanning(){
           <SelectField label="Serialized product" value={productId} onChange={setProductId} options={[{value:'',label:'Select a product'},...(eligible||[]).map(item=>({value:item.productId,label:data.products.find(product=>product.id===item.productId)?.name||item.productId}))]}/>
         </div>
         {grn&&line&&<div className="p4-scan-progress"><div><span>Expected / scanned sellable</span><strong>{acceptedExpected} / {line.serials.length}</strong></div><div><span>Expected / scanned damaged</span><strong>{damagedExpected} / {damagedSerials.length}</strong></div><div><span>Unscanned</span><strong>{Math.max(0,expected-line.serials.length-damagedSerials.length)}</strong></div></div>}
-        <form className="crm-form" onSubmit={addSerial}><SelectField label="Serial condition" value={condition} onChange={setCondition} options={[{value:'Sellable',label:'Sellable'},{value:'Damaged',label:'Damaged'}]}/><Field label="Serial number" value={serial} onChange={setSerial} placeholder="Focus the field and scan or type a serial"/>{error&&<p role="alert" className="crm-error">{error}</p>}<Button type="submit" disabled={!grn||!line}>Add serial</Button></form>
+        <form className="crm-form" onSubmit={addSerial}><SelectField label="Serial condition" value={condition} onChange={setCondition} options={[{value:'Sellable',label:'Sellable'},{value:'Damaged',label:'Damaged'}]}/><ScanField label="Serial number" value={serial} onChange={setSerial} placeholder="Focus the field and scan or type a serial" onScan={()=>addSerial()} disabled={!grn||!line}/>{error&&<p role="alert" className="crm-error">{error}</p>}<Button type="submit" disabled={!grn||!line}>Add serial</Button></form>
       </Panel>
       <Panel title="Current scan list" meta={line?`${line.serials.length} scanned · ${Math.max(0,expected-line.serials.length)} to go`:'Select a product'}>
         {line&&(line.serials.length+damagedSerials.length)>0?<DataTable columns={['#','Serial number','Receipt condition']} rows={[...line.serials.map((value,index)=>[index+1,value,'Sellable']),...damagedSerials.map((value,index)=>[line.serials.length+index+1,value,'Damaged'])]}/>:<EmptyState text="No serials have been scanned into this GRN line."/>}
