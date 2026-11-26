@@ -58,7 +58,7 @@ export default function DemoCentre() {
   return <div className="phase demo-centre">
     <PageHeader eyebrow="Client demonstration / RetailERP" title="Demo Centre" description="Present the complete fictional retail lifecycle using live shared records." />
     <section className="demo-command">
-      <div><span className="demo-indicator"><i />DEMO DATA</span><h2>Sharma Electronics · Delhi NCR</h2><p>Frontend-only fictional scenario · Asia/Kolkata · INR</p></div>
+      <div><span className="demo-indicator"><i />DEMO DATA</span><h2>ACS Electronics · Delhi NCR</h2><p>Frontend-only fictional scenario · Asia/Kolkata · INR</p></div>
       <div className="demo-context"><span><Store size={15} />{store}</span><span><ShieldCheck size={15} />{role}</span></div>
     </section>
     <div className="demo-layout">

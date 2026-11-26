@@ -19,7 +19,7 @@ The prototype also includes executive analytics, store comparison, sales and cus
 ## Demo-only functionality
 
 - Shared browser-session data
-- Fictional Sharma Electronics companies, stores, customers, products and serials
+- Fictional ACS Electronics companies, stores, customers, products and serials
 - Guided transaction journeys
 - Print-friendly invoice and delivery layouts
 - CSV report downloads

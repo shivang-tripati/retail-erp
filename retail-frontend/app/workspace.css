@@ -247,7 +247,7 @@ select:focus-visible {
     color: #a5b9d1
 }
 
-.compact .sidebar :is(.brand b, .demo, .navlabel, .navitem>span, .navitem>svg:last-child:not(:first-child), .org div, .collapse span, .subnav) {
+.compact .sidebar :is(.brand b, .demo, .navlabel, .navitem>span, .navitem>svg:last-child:not(:first-child), .org div, .collapse span) {
     display: none
 }
 
@@ -1078,7 +1078,7 @@ main {
         justify-content: center
     }
 
-    .sidebar :is(.brand b, .demo, .navlabel, .navitem>span, .navitem>svg:last-child:not(:first-child), .org div, .collapse, .subnav) {
+    .sidebar :is(.brand b, .demo, .navlabel, .navitem>span, .navitem>svg:last-child:not(:first-child), .org div, .collapse) {
         display: none
     }
 

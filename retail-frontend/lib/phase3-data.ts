@@ -1,7 +1,7 @@
-import {categories, endDay, invoices, initialBrands, type Row} from './demo-data'
-import type {FinancialAuditEntry, PaymentAllocation, PaymentReconciliation, PaymentReversal, RecoveryActivity, RecoveryCase} from './finance-types'
-import type {Delivery, DeliveryActivity, DeliveryException, DeliveryManifest, DeliveryProof, DeliveryTeam, DeliveryVehicle, FulfilmentMode} from './phase6-types'
-import type {Installation,InstallationActivity,ServiceActivity,ServiceTicket,Technician,WarrantyPlan,WarrantyRegistration} from './phase7-types'
+import { categories, endDay, invoices, initialBrands, type Row } from './demo-data'
+import type { FinancialAuditEntry, PaymentAllocation, PaymentReconciliation, PaymentReversal, RecoveryActivity, RecoveryCase } from './finance-types'
+import type { Delivery, DeliveryActivity, DeliveryException, DeliveryManifest, DeliveryProof, DeliveryTeam, DeliveryVehicle, FulfilmentMode } from './phase6-types'
+import type { Installation, InstallationActivity, ServiceActivity, ServiceTicket, Technician, WarrantyPlan, WarrantyRegistration } from './phase7-types'
 
 export type Customer = {
   id: string
@@ -34,16 +34,16 @@ export type Product = {
   status: 'Active' | 'Inactive'
 }
 
-export type InventoryStock = {productId: string; storeId: string; quantity: number}
+export type InventoryStock = { productId: string; storeId: string; quantity: number }
 export type SerialRecord = {
   serial: string; productId: string; storeId: string
   status: 'In Transit' | 'Available' | 'Reserved' | 'Sold' | 'Returned' | 'Under Service' | 'Scrapped' | 'Transferred' | 'Unavailable'
   invoiceId?: string; grnReference?: string; purchaseDate?: string; warrantyUntil?: string
 }
-export type WalkIn = {id: string; name: string; mobile: string; storeId: string; visitedAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; customerId?: string}
-export type Enquiry = {id: string; customerName: string; mobile: string; storeId: string; createdAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; walkInId?: string}
-export type SaleLine = {productId: string; name: string; brandId: string; sku: string; model: string; category: string; quantity: number; unitPricePaise: number; itemDiscountPct: number; itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; gstRate: number; taxPaise: number; serials: string[]; fulfilmentMode?:FulfilmentMode}
-export type Payment = {id: string; invoiceId: string; customerId: string; date: string; amountPaise: number; mode: string; reference: string; financier: string; storeId?: string; collectedBy?: string; notes?: string}
+export type WalkIn = { id: string; name: string; mobile: string; storeId: string; visitedAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; customerId?: string }
+export type Enquiry = { id: string; customerName: string; mobile: string; storeId: string; createdAt: string; executive: string; interest: string; status: string; followUp: string; notes: string; walkInId?: string }
+export type SaleLine = { productId: string; name: string; brandId: string; sku: string; model: string; category: string; quantity: number; unitPricePaise: number; itemDiscountPct: number; itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; gstRate: number; taxPaise: number; serials: string[]; fulfilmentMode?: FulfilmentMode }
+export type Payment = { id: string; invoiceId: string; customerId: string; date: string; amountPaise: number; mode: string; reference: string; financier: string; storeId?: string; collectedBy?: string; notes?: string }
 export type Sale = {
   id: string; invoiceNumber: string; date: string; storeId: string; customerId: string; customerName: string
   salesperson: string; payment: string; lines: SaleLine[]; grossPaise: number; itemDiscountPaise: number; cartDiscountPaise: number
@@ -52,7 +52,7 @@ export type Sale = {
   paymentStatus: 'Paid' | 'Partially paid' | 'Unpaid'; paymentIds: string[]; status: 'Completed' | 'Reversed'
   reversalReason: string; reversedAt: string; reversedBy: string; createdAt: string; createdBy: string
 }
-export type AuditEntry = {id: string; date: string; action: string; actor: string; reference: string; detail: string}
+export type AuditEntry = { id: string; date: string; action: string; actor: string; reference: string; detail: string }
 export type Phase3State = {
   customers: Customer[]
   products: Product[]
@@ -85,13 +85,13 @@ export type Phase3State = {
   audit: AuditEntry[]
 }
 
-const firstNames = ['Aarav','Nisha','Kabir','Meera','Rohan','Diya','Ishaan','Kavya','Arjun','Tara']
-const surnames = ['Sharma','Batra','Sethi','Kapoor','Malhotra','Khanna','Rao','Mehta','Iyer','Chawla']
+const firstNames = ['Aarav', 'Nisha', 'Kabir', 'Meera', 'Rohan', 'Diya', 'Ishaan', 'Kavya', 'Arjun', 'Tara']
+const surnames = ['Sharma', 'Batra', 'Sethi', 'Kapoor', 'Malhotra', 'Khanna', 'Rao', 'Mehta', 'Iyer', 'Chawla']
 const cities = [
-  ['New Delhi','Delhi'],['Noida','Uttar Pradesh'],['Ghaziabad','Uttar Pradesh'],['Faridabad','Haryana'],['Gurugram','Haryana'],['Greater Noida','Uttar Pradesh']
+  ['New Delhi', 'Delhi'], ['Noida', 'Uttar Pradesh'], ['Ghaziabad', 'Uttar Pradesh'], ['Faridabad', 'Haryana'], ['Gurugram', 'Haryana'], ['Greater Noida', 'Uttar Pradesh']
 ]
 
-export const initialCustomers: Customer[] = Array.from({length: 300}, (_, i) => {
+export const initialCustomers: Customer[] = Array.from({ length: 300 }, (_, i) => {
   const first = firstNames[i % firstNames.length]
   const last = surnames[Math.floor(i / firstNames.length) % surnames.length]
   const [city, state] = cities[i % cities.length]
@@ -101,7 +101,7 @@ export const initialCustomers: Customer[] = Array.from({length: 300}, (_, i) => 
     mobile: `98${String(10000000 + i).padStart(8, '0')}`,
     alternateMobile: i % 4 === 0 ? `97${String(10000000 + i).padStart(8, '0')}` : '',
     email: `${first.toLowerCase()}.${last.toLowerCase()}${i}@customer.example`,
-    address: `${12 + i % 87}, ${['Park Street','Market Road','Lake View Road','Sector Road'][i % 4]}`,
+    address: `${12 + i % 87}, ${['Park Street', 'Market Road', 'Lake View Road', 'Sector Road'][i % 4]}`,
     city,
     state,
     pinCode: String(110001 + i % 80),
@@ -113,18 +113,18 @@ export const initialCustomers: Customer[] = Array.from({length: 300}, (_, i) => 
 })
 
 const productNames = [
-  ['Astra X5 5G','Astra Lite 5G','Nova Pro 256 GB','Nova Max 512 GB','Orbit Fold'],
-  ['CoolHome 550 L Refrigerator','FrostLine Double Door','Breeze 1.5T Inverter AC','WashPro 8 kg Front Load','AquaClean 7 kg Top Load'],
-  ['Vista QLED 55 inch','Vista UHD 43 inch','SoundBar 500','Cinema OLED 65 inch','Smart LED 32 inch'],
-  ['OrbitBook 14 Pro','OrbitBook Air 13','Vector Gaming 16','TabNote 11','DeskMate All-in-One'],
-  ['QuickChef Air Fryer','DailyBrew Coffee Maker','SteamEase Iron','MixPro 750 W','PureSip Water Purifier']
+  ['Astra X5 5G', 'Astra Lite 5G', 'Nova Pro 256 GB', 'Nova Max 512 GB', 'Orbit Fold'],
+  ['CoolHome 550 L Refrigerator', 'FrostLine Double Door', 'Breeze 1.5T Inverter AC', 'WashPro 8 kg Front Load', 'AquaClean 7 kg Top Load'],
+  ['Vista QLED 55 inch', 'Vista UHD 43 inch', 'SoundBar 500', 'Cinema OLED 65 inch', 'Smart LED 32 inch'],
+  ['OrbitBook 14 Pro', 'OrbitBook Air 13', 'Vector Gaming 16', 'TabNote 11', 'DeskMate All-in-One'],
+  ['QuickChef Air Fryer', 'DailyBrew Coffee Maker', 'SteamEase Iron', 'MixPro 750 W', 'PureSip Water Purifier']
 ]
 const prices = [
-  [42999,18999,64999,84999,109999],
-  [62999,34999,44999,58999,31999],
-  [69999,37999,12999,119999,18999],
-  [74999,59999,109999,29999,52999],
-  [8999,6499,3299,4999,14999]
+  [42999, 18999, 64999, 84999, 109999],
+  [62999, 34999, 44999, 58999, 31999],
+  [69999, 37999, 12999, 119999, 18999],
+  [74999, 59999, 109999, 29999, 52999],
+  [8999, 6499, 3299, 4999, 14999]
 ]
 
 export const initialProducts: Product[] = categories.flatMap((category, c) =>
@@ -149,17 +149,17 @@ export const initialProducts: Product[] = categories.flatMap((category, c) =>
 )
 
 const serialized = new Set(initialProducts.filter(p => p.serialRequired).map(p => p.id))
-export const initialInventory: InventoryStock[] = Array.from({length: 10}, (_, storeIndex) =>
+export const initialInventory: InventoryStock[] = Array.from({ length: 10 }, (_, storeIndex) =>
   initialProducts.map((product, productIndex) => ({
     productId: product.id,
     storeId: `S${storeIndex}`,
     quantity: product.serialRequired ? 5 + (storeIndex + productIndex) % 4 : 7 + (storeIndex * 3 + productIndex * 5) % 18
   }))
-).flat().concat(initialProducts.map(product => ({productId: product.id, storeId: 'W0', quantity: 0})))
+).flat().concat(initialProducts.map(product => ({ productId: product.id, storeId: 'W0', quantity: 0 })))
 const seededReceiptDate = (storeIndex: number) => new Date(Date.UTC(2026, 6, 15 + storeIndex)).toISOString()
 export const initialSerials: SerialRecord[] = initialInventory
   .filter(stock => serialized.has(stock.productId) && stock.storeId !== 'W0')
-  .flatMap(stock => Array.from({length: stock.quantity}, (_, i) => ({
+  .flatMap(stock => Array.from({ length: stock.quantity }, (_, i) => ({
     serial: `${stock.productId}-${stock.storeId}-${String(i + 1).padStart(3, '0')}`,
     productId: stock.productId,
     storeId: stock.storeId,
@@ -170,7 +170,7 @@ export const initialSerials: SerialRecord[] = initialInventory
   })))
 
 const demoDate = (age: number) => new Date(endDay - age * 86400000).toISOString()
-export const initialWalkIns: WalkIn[] = Array.from({length: 24}, (_, i) => ({
+export const initialWalkIns: WalkIn[] = Array.from({ length: 24 }, (_, i) => ({
   id: `WALK-${String(1001 + i)}`,
   name: i % 3 === 0 ? 'Walk-in visitor' : i % 3 === 2 ? initialCustomers[i].name : `${firstNames[i % firstNames.length]} ${surnames[i % surnames.length]}`,
   mobile: i % 3 === 0 ? '' : i % 3 === 2 ? initialCustomers[i].mobile : `96${String(10000000 + i).padStart(8, '0')}`,
@@ -178,12 +178,12 @@ export const initialWalkIns: WalkIn[] = Array.from({length: 24}, (_, i) => ({
   visitedAt: demoDate(i % 14),
   executive: `${firstNames[(i + 2) % firstNames.length]} ${surnames[i % 4]}`,
   interest: categories[i % categories.length],
-  status: ['New','Follow-up','Converted'][i % 3],
+  status: ['New', 'Follow-up', 'Converted'][i % 3],
   followUp: demoDate(i % 7),
   notes: '',
   customerId: i % 3 === 2 ? initialCustomers[i].id : undefined
 }))
-export const initialEnquiries: Enquiry[] = Array.from({length: 18}, (_, i) => ({
+export const initialEnquiries: Enquiry[] = Array.from({ length: 18 }, (_, i) => ({
   id: `ENQ-${String(2001 + i)}`,
   customerName: `${firstNames[(i + 3) % firstNames.length]} ${surnames[(i + 1) % surnames.length]}`,
   mobile: `95${String(10000000 + i).padStart(8, '0')}`,
@@ -191,7 +191,7 @@ export const initialEnquiries: Enquiry[] = Array.from({length: 18}, (_, i) => ({
   createdAt: demoDate(i % 20),
   executive: `${firstNames[i % firstNames.length]} ${surnames[(i + 2) % surnames.length]}`,
   interest: categories[(i + 2) % categories.length],
-  status: ['Open','Contacted','Qualified','Won','Lost'][i % 5],
+  status: ['Open', 'Contacted', 'Qualified', 'Won', 'Lost'][i % 5],
   followUp: demoDate(i % 10),
   notes: ''
 }))
@@ -199,85 +199,97 @@ export const initialEnquiries: Enquiry[] = Array.from({length: 18}, (_, i) => ({
 const seedSalesPlan: Array<{
   invoiceNumber: string; date: string; storeId: string; customerId: string; productId: string
   status?: Sale['status']; reversalReason?: string
-  payments: Array<{amountPaise: number; mode: string; reference: string; date: string; financier?: string}>
+  payments: Array<{ amountPaise: number; mode: string; reference: string; date: string; financier?: string }>
 }> = [
-  {invoiceNumber:'INV-DEMO-2401',date:'2026-11-17T10:20:00.000Z',storeId:'S0',customerId:'CUS-0001',productId:'PR-010',payments:[
-    {amountPaise:1000000,mode:'UPI',reference:'UPI-DEMO-2401-A',date:'2026-11-17T10:24:00.000Z'},
-    {amountPaise:500000,mode:'Cash',reference:'CASH-DEMO-2401-B',date:'2026-11-18T08:30:00.000Z'}
-  ]},
-  {invoiceNumber:'INV-DEMO-2402',date:'2026-09-10T09:15:00.000Z',storeId:'S1',customerId:'CUS-0002',productId:'PR-013',payments:[]},
-  {invoiceNumber:'INV-DEMO-2403',date:'2026-10-11T11:05:00.000Z',storeId:'S2',customerId:'CUS-0003',productId:'PR-025',payments:[
-    {amountPaise:500000,mode:'UPI',reference:'UPI-DEMO-2403-A',date:'2026-10-12T08:00:00.000Z'}
-  ]},
-  {invoiceNumber:'INV-DEMO-2404',date:'2026-11-19T13:40:00.000Z',storeId:'S0',customerId:'CUS-0004',productId:'PR-005',payments:[
-    {amountPaise:12979900,mode:'Debit/Credit Card',reference:'CARD-DEMO-2404-A',date:'2026-11-19T13:44:00.000Z'}
-  ]},
-  {invoiceNumber:'INV-DEMO-2405',date:'2026-11-20T12:10:00.000Z',storeId:'S3',customerId:'CUS-0001',productId:'PR-015',payments:[
-    {amountPaise:1000000,mode:'Financing / EMI',reference:'EMI-DEMO-2405-A',date:'2026-11-20T12:20:00.000Z',financier:'Northstar Demo Finance'}
-  ]},
-  {invoiceNumber:'INV-DEMO-2406',date:'2026-08-20T10:10:00.000Z',storeId:'S1',customerId:'CUS-0005',productId:'PR-010',status:'Reversed',reversalReason:'Duplicate demonstration invoice',payments:[]},
-  {invoiceNumber:'INV-DEMO-2407',date:'2026-08-20T15:15:00.000Z',storeId:'S4',customerId:'CUS-0006',productId:'PR-013',payments:[
-    {amountPaise:800000,mode:'Bank Transfer',reference:'BANK-DEMO-2407-A',date:'2026-08-21T07:45:00.000Z'}
-  ]},
-  {invoiceNumber:'INV-DEMO-2408',date:'2026-07-10T09:00:00.000Z',storeId:'S5',customerId:'CUS-0007',productId:'PR-025',payments:[]}
-]
+    {
+      invoiceNumber: 'INV-DEMO-2401', date: '2026-11-17T10:20:00.000Z', storeId: 'S0', customerId: 'CUS-0001', productId: 'PR-010', payments: [
+        { amountPaise: 1000000, mode: 'UPI', reference: 'UPI-DEMO-2401-A', date: '2026-11-17T10:24:00.000Z' },
+        { amountPaise: 500000, mode: 'Cash', reference: 'CASH-DEMO-2401-B', date: '2026-11-18T08:30:00.000Z' }
+      ]
+    },
+    { invoiceNumber: 'INV-DEMO-2402', date: '2026-09-10T09:15:00.000Z', storeId: 'S1', customerId: 'CUS-0002', productId: 'PR-013', payments: [] },
+    {
+      invoiceNumber: 'INV-DEMO-2403', date: '2026-10-11T11:05:00.000Z', storeId: 'S2', customerId: 'CUS-0003', productId: 'PR-025', payments: [
+        { amountPaise: 500000, mode: 'UPI', reference: 'UPI-DEMO-2403-A', date: '2026-10-12T08:00:00.000Z' }
+      ]
+    },
+    {
+      invoiceNumber: 'INV-DEMO-2404', date: '2026-11-19T13:40:00.000Z', storeId: 'S0', customerId: 'CUS-0004', productId: 'PR-005', payments: [
+        { amountPaise: 12979900, mode: 'Debit/Credit Card', reference: 'CARD-DEMO-2404-A', date: '2026-11-19T13:44:00.000Z' }
+      ]
+    },
+    {
+      invoiceNumber: 'INV-DEMO-2405', date: '2026-11-20T12:10:00.000Z', storeId: 'S3', customerId: 'CUS-0001', productId: 'PR-015', payments: [
+        { amountPaise: 1000000, mode: 'Financing / EMI', reference: 'EMI-DEMO-2405-A', date: '2026-11-20T12:20:00.000Z', financier: 'Northstar Demo Finance' }
+      ]
+    },
+    { invoiceNumber: 'INV-DEMO-2406', date: '2026-08-20T10:10:00.000Z', storeId: 'S1', customerId: 'CUS-0005', productId: 'PR-010', status: 'Reversed', reversalReason: 'Duplicate demonstration invoice', payments: [] },
+    {
+      invoiceNumber: 'INV-DEMO-2407', date: '2026-08-20T15:15:00.000Z', storeId: 'S4', customerId: 'CUS-0006', productId: 'PR-013', payments: [
+        { amountPaise: 800000, mode: 'Bank Transfer', reference: 'BANK-DEMO-2407-A', date: '2026-08-21T07:45:00.000Z' }
+      ]
+    },
+    { invoiceNumber: 'INV-DEMO-2408', date: '2026-07-10T09:00:00.000Z', storeId: 'S5', customerId: 'CUS-0007', productId: 'PR-025', payments: [] }
+  ]
 
-export const initialSales: Sale[] = seedSalesPlan.map((plan,index) => {
-  const product=initialProducts.find(item=>item.id===plan.productId)!
-  const customer=initialCustomers.find(item=>item.id===plan.customerId)!
-  const calculation=calculateInvoice([{quantity:1,unitPricePaise:product.pricePaise,itemDiscountPct:0,gstRate:product.gstRate}],0,'',false)
-  const paymentIds=plan.payments.map((_,paymentIndex)=>`PAY-DEMO-${2401+index}-${paymentIndex+1}`)
-  const paidPaise=plan.status==='Reversed'?0:plan.payments.reduce((sum,payment)=>sum+payment.amountPaise,0)
-  const line=calculation.lines[0]
-  const reversed=plan.status==='Reversed'
+export const initialSales: Sale[] = seedSalesPlan.map((plan, index) => {
+  const product = initialProducts.find(item => item.id === plan.productId)!
+  const customer = initialCustomers.find(item => item.id === plan.customerId)!
+  const calculation = calculateInvoice([{ quantity: 1, unitPricePaise: product.pricePaise, itemDiscountPct: 0, gstRate: product.gstRate }], 0, '', false)
+  const paymentIds = plan.payments.map((_, paymentIndex) => `PAY-DEMO-${2401 + index}-${paymentIndex + 1}`)
+  const paidPaise = plan.status === 'Reversed' ? 0 : plan.payments.reduce((sum, payment) => sum + payment.amountPaise, 0)
+  const line = calculation.lines[0]
+  const reversed = plan.status === 'Reversed'
   return {
-    id:`sale-demo-${2401+index}`,invoiceNumber:plan.invoiceNumber,date:plan.date,storeId:plan.storeId,
-    customerId:customer.id,customerName:customer.name,salesperson:'Aarav Sharma',
-    payment:plan.payments.length>1?'Split payment':plan.payments[0]?.mode||'Unpaid',
-    lines:[{productId:product.id,name:product.name,brandId:product.brandId,sku:product.sku,model:product.model,category:product.category,
-      quantity:1,unitPricePaise:product.pricePaise,itemDiscountPct:0,itemDiscountPaise:line.itemDiscountPaise,
-      cartDiscountPaise:line.cartDiscountPaise,taxablePaise:line.taxablePaise,gstRate:product.gstRate,taxPaise:line.taxPaise,serials:[]}],
-    grossPaise:calculation.grossPaise,itemDiscountPaise:calculation.itemDiscountPaise,cartDiscountPaise:calculation.cartDiscountPaise,
-    taxablePaise:calculation.taxablePaise,cgstPaise:calculation.cgstPaise,sgstPaise:calculation.sgstPaise,igstPaise:calculation.igstPaise,
-    taxPaise:calculation.taxPaise,roundOffPaise:calculation.roundOffPaise,totalPaise:calculation.totalPaise,
-    paidPaise,balancePaise:reversed?0:calculation.totalPaise-paidPaise,
-    paymentStatus:paidPaise>=calculation.totalPaise?'Paid':paidPaise?'Partially paid':'Unpaid',
-    paymentIds,status:plan.status||'Completed',reversalReason:plan.reversalReason||'',
-    reversedAt:reversed?'2026-08-20T10:30:00.000Z':'',reversedBy:reversed?'Aarav Sharma':'',
-    createdAt:plan.date,createdBy:'Aarav Sharma · Finance Executive'
+    id: `sale-demo-${2401 + index}`, invoiceNumber: plan.invoiceNumber, date: plan.date, storeId: plan.storeId,
+    customerId: customer.id, customerName: customer.name, salesperson: 'Prince Tiwari',
+    payment: plan.payments.length > 1 ? 'Split payment' : plan.payments[0]?.mode || 'Unpaid',
+    lines: [{
+      productId: product.id, name: product.name, brandId: product.brandId, sku: product.sku, model: product.model, category: product.category,
+      quantity: 1, unitPricePaise: product.pricePaise, itemDiscountPct: 0, itemDiscountPaise: line.itemDiscountPaise,
+      cartDiscountPaise: line.cartDiscountPaise, taxablePaise: line.taxablePaise, gstRate: product.gstRate, taxPaise: line.taxPaise, serials: []
+    }],
+    grossPaise: calculation.grossPaise, itemDiscountPaise: calculation.itemDiscountPaise, cartDiscountPaise: calculation.cartDiscountPaise,
+    taxablePaise: calculation.taxablePaise, cgstPaise: calculation.cgstPaise, sgstPaise: calculation.sgstPaise, igstPaise: calculation.igstPaise,
+    taxPaise: calculation.taxPaise, roundOffPaise: calculation.roundOffPaise, totalPaise: calculation.totalPaise,
+    paidPaise, balancePaise: reversed ? 0 : calculation.totalPaise - paidPaise,
+    paymentStatus: paidPaise >= calculation.totalPaise ? 'Paid' : paidPaise ? 'Partially paid' : 'Unpaid',
+    paymentIds, status: plan.status || 'Completed', reversalReason: plan.reversalReason || '',
+    reversedAt: reversed ? '2026-08-20T10:30:00.000Z' : '', reversedBy: reversed ? 'Prince Tiwari' : '',
+    createdAt: plan.date, createdBy: 'Prince Tiwari · Finance Executive'
   }
 })
 
-export const initialPayments: Payment[] = seedSalesPlan.flatMap((plan,index) => plan.payments.map((payment,paymentIndex) => ({
-  id:`PAY-DEMO-${2401+index}-${paymentIndex+1}`,invoiceId:plan.invoiceNumber,customerId:plan.customerId,
-  date:payment.date,amountPaise:payment.amountPaise,mode:payment.mode,reference:payment.reference,
-  financier:payment.financier||'',storeId:plan.storeId,collectedBy:'Aarav Sharma'
+export const initialPayments: Payment[] = seedSalesPlan.flatMap((plan, index) => plan.payments.map((payment, paymentIndex) => ({
+  id: `PAY-DEMO-${2401 + index}-${paymentIndex + 1}`, invoiceId: plan.invoiceNumber, customerId: plan.customerId,
+  date: payment.date, amountPaise: payment.amountPaise, mode: payment.mode, reference: payment.reference,
+  financier: payment.financier || '', storeId: plan.storeId, collectedBy: 'Prince Tiwari'
 })))
 export const initialPaymentAllocations: PaymentAllocation[] = initialPayments.map(payment => ({
-  id:`ALLOC-${payment.id}`,paymentId:payment.id,invoiceId:payment.invoiceId,amountPaise:payment.amountPaise,
-  createdAt:payment.date,createdBy:payment.collectedBy||'Aarav Sharma'
+  id: `ALLOC-${payment.id}`, paymentId: payment.id, invoiceId: payment.invoiceId, amountPaise: payment.amountPaise,
+  createdAt: payment.date, createdBy: payment.collectedBy || 'Prince Tiwari'
 }))
 export const initialFinancialAudit: FinancialAuditEntry[] = [
   ...initialPayments.flatMap<FinancialAuditEntry>(payment => [
-    {id:`AUDIT-REC-${payment.id}`,reference:payment.reference,activity:'Payment recorded',date:payment.date,actor:payment.collectedBy||'Aarav Sharma',reason:'Seeded fictional demo collection',customerId:payment.customerId,invoiceId:payment.invoiceId},
-    {id:`AUDIT-ALLOC-${payment.id}`,reference:payment.reference,activity:'Payment allocated',date:payment.date,actor:payment.collectedBy||'Aarav Sharma',reason:'Allocated to the source invoice',customerId:payment.customerId,invoiceId:payment.invoiceId}
+    { id: `AUDIT-REC-${payment.id}`, reference: payment.reference, activity: 'Payment recorded', date: payment.date, actor: payment.collectedBy || 'Prince Tiwari', reason: 'Seeded fictional demo collection', customerId: payment.customerId, invoiceId: payment.invoiceId },
+    { id: `AUDIT-ALLOC-${payment.id}`, reference: payment.reference, activity: 'Payment allocated', date: payment.date, actor: payment.collectedBy || 'Prince Tiwari', reason: 'Allocated to the source invoice', customerId: payment.customerId, invoiceId: payment.invoiceId }
   ]),
-  {id:'AUDIT-REV-INV-DEMO-2406',reference:'INV-DEMO-2406',activity:'Invoice reversed',date:'2026-08-20T10:30:00.000Z',actor:'Aarav Sharma',reason:'Duplicate demonstration invoice',customerId:'CUS-0005',invoiceId:'INV-DEMO-2406'}
+  { id: 'AUDIT-REV-INV-DEMO-2406', reference: 'INV-DEMO-2406', activity: 'Invoice reversed', date: '2026-08-20T10:30:00.000Z', actor: 'Prince Tiwari', reason: 'Duplicate demonstration invoice', customerId: 'CUS-0005', invoiceId: 'INV-DEMO-2406' }
 ]
 export const initialRecoveryCases: RecoveryCase[] = [
-  {id:'REC-DEMO-2402',customerId:'CUS-0002',storeId:'S1',assignedExecutive:'Nisha Batra',status:'Contacted',lastContactAt:'2026-11-18T10:00:00.000Z',nextFollowUpAt:'2026-11-21T04:30:00.000Z',promisedPaymentAt:'',notes:'Customer requested a call after the weekend.',createdAt:'2026-10-15T10:00:00.000Z'},
-  {id:'REC-DEMO-2403',customerId:'CUS-0003',storeId:'S2',assignedExecutive:'Rohan Khanna',status:'Promised to Pay',lastContactAt:'2026-11-19T08:30:00.000Z',nextFollowUpAt:'2026-11-21T04:30:00.000Z',promisedPaymentAt:'2026-11-24T06:30:00.000Z',notes:'Customer confirmed an expected transfer.',createdAt:'2026-10-20T10:00:00.000Z'},
-  {id:'REC-DEMO-2407',customerId:'CUS-0006',storeId:'S4',assignedExecutive:'Nisha Batra',status:'Not Contacted',lastContactAt:'',nextFollowUpAt:'2026-11-20T04:30:00.000Z',promisedPaymentAt:'',notes:'',createdAt:'2026-08-25T10:00:00.000Z'},
-  {id:'REC-DEMO-2408',customerId:'CUS-0007',storeId:'S5',assignedExecutive:'Rohan Khanna',status:'Escalated',lastContactAt:'2026-11-14T09:00:00.000Z',nextFollowUpAt:'2026-11-21T04:30:00.000Z',promisedPaymentAt:'',notes:'Older balance referred for manager review.',createdAt:'2026-08-15T10:00:00.000Z'}
+  { id: 'REC-DEMO-2402', customerId: 'CUS-0002', storeId: 'S1', assignedExecutive: 'Nisha Batra', status: 'Contacted', lastContactAt: '2026-11-18T10:00:00.000Z', nextFollowUpAt: '2026-11-21T04:30:00.000Z', promisedPaymentAt: '', notes: 'Customer requested a call after the weekend.', createdAt: '2026-10-15T10:00:00.000Z' },
+  { id: 'REC-DEMO-2403', customerId: 'CUS-0003', storeId: 'S2', assignedExecutive: 'Rohan Khanna', status: 'Promised to Pay', lastContactAt: '2026-11-19T08:30:00.000Z', nextFollowUpAt: '2026-11-21T04:30:00.000Z', promisedPaymentAt: '2026-11-24T06:30:00.000Z', notes: 'Customer confirmed an expected transfer.', createdAt: '2026-10-20T10:00:00.000Z' },
+  { id: 'REC-DEMO-2407', customerId: 'CUS-0006', storeId: 'S4', assignedExecutive: 'Nisha Batra', status: 'Not Contacted', lastContactAt: '', nextFollowUpAt: '2026-11-20T04:30:00.000Z', promisedPaymentAt: '', notes: '', createdAt: '2026-08-25T10:00:00.000Z' },
+  { id: 'REC-DEMO-2408', customerId: 'CUS-0007', storeId: 'S5', assignedExecutive: 'Rohan Khanna', status: 'Escalated', lastContactAt: '2026-11-14T09:00:00.000Z', nextFollowUpAt: '2026-11-21T04:30:00.000Z', promisedPaymentAt: '', notes: 'Older balance referred for manager review.', createdAt: '2026-08-15T10:00:00.000Z' }
 ]
 
 export const initialPhase3State: Phase3State = {
   customers: initialCustomers,
   products: initialProducts,
   inventory: initialInventory.map(stock => {
-    const sold=initialSales.filter(sale=>sale.status==='Completed'&&sale.storeId===stock.storeId)
-      .reduce((sum,sale)=>sum+sale.lines.filter(line=>line.productId===stock.productId).reduce((quantity,line)=>quantity+line.quantity,0),0)
-    return {...stock,quantity:stock.quantity-sold}
+    const sold = initialSales.filter(sale => sale.status === 'Completed' && sale.storeId === stock.storeId)
+      .reduce((sum, sale) => sum + sale.lines.filter(line => line.productId === stock.productId).reduce((quantity, line) => quantity + line.quantity, 0), 0)
+    return { ...stock, quantity: stock.quantity - sold }
   }),
   serials: initialSerials,
   walkIns: initialWalkIns,
@@ -307,7 +319,7 @@ export const initialPhase3State: Phase3State = {
   audit: []
 }
 
-export type InvoiceDraftLine = {quantity: number; unitPricePaise: number; itemDiscountPct: number; gstRate: number}
+export type InvoiceDraftLine = { quantity: number; unitPricePaise: number; itemDiscountPct: number; gstRate: number }
 export type InvoiceCalculation = {
   grossPaise: number
   itemDiscountPaise: number
@@ -319,7 +331,7 @@ export type InvoiceCalculation = {
   taxPaise: number
   roundOffPaise: number
   totalPaise: number
-  lines: Array<{itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; taxPaise: number}>
+  lines: Array<{ itemDiscountPaise: number; cartDiscountPaise: number; taxablePaise: number; taxPaise: number }>
 }
 
 export function calculateInvoice(lines: InvoiceDraftLine[], cartDiscountPct: number, discountCode: string, interstate: boolean): InvoiceCalculation {
@@ -348,7 +360,7 @@ export function calculateInvoice(lines: InvoiceDraftLine[], cartDiscountPct: num
     allocated += share
     const taxablePaise = afterItems[index] - share
     const taxPaise = Math.round(taxablePaise * line.gstRate / 100)
-    return {itemDiscountPaise: amounts[index].discountPaise, cartDiscountPaise: share, taxablePaise, taxPaise}
+    return { itemDiscountPaise: amounts[index].discountPaise, cartDiscountPaise: share, taxablePaise, taxPaise }
   })
   const grossPaise = amounts.reduce((sum, amount) => sum + amount.grossPaise, 0)
   const itemDiscountPaise = amounts.reduce((sum, amount) => sum + amount.discountPaise, 0)
@@ -399,6 +411,6 @@ export const staticCustomerInvoices = (customerId: string) => {
   return invoices.filter(invoice => invoice.customer === customerNumber)
 }
 
-export const currency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
-export const dateTimeInIndia = (value: string) => new Date(value).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short'})
-export const dateInIndia = (value: string) => new Date(value).toLocaleDateString('en-IN', {timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric'})
+export const currency = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+export const dateTimeInIndia = (value: string) => new Date(value).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })
+export const dateInIndia = (value: string) => new Date(value).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })
